@@ -9,11 +9,11 @@ defmodule CsvImporter.CsvImporter do
       headers = stream |> extract_headers
 
       if valid?(headers) do
-        stream
+        stream = stream
         |> Stream.map(&to_struct(&1, headers))
         |> Enum.map(&Repo.insert(&1))
 
-        :ok
+        {:ok, stream}
       else
         :invalid_csv
       end
@@ -46,6 +46,10 @@ defmodule CsvImporter.CsvImporter do
   end
 
   def call(file_handler) when is_pid(file_handler) do
-    CsvRecordStream.create(file_handler)
+    case CsvRecordStream.create(file_handler) do
+      {:ok, _stream} ->
+        :ok
+      error -> error
+    end
   end
 end
