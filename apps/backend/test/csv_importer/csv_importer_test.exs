@@ -1,44 +1,44 @@
-defmodule CsvImporter.CsvImporterTest do
-  use DbCase
-  alias CsvImporter.{City, CsvImporter}
+defmodule CsvImporter.CsvRecordStreamTest do
+  use ExUnit.Case
+  alias CsvImporter.{City, CsvRecordStream}
 
-  test "does not import when csv has no data lines" do
+  test "streams an empty collection when csv has no data lines" do
     {:ok, file_handler} = StringIO.open("name,url\n")
+    {:ok, stream} = CsvRecordStream.create(file_handler)
 
-    assert :ok == CsvImporter.call(file_handler)
-    assert [] == (City |> Repo.all)
+    assert [] == Enum.to_list(stream)
   end
 
-  test "imports records from a csv file" do
+  test "streams records from a csv file" do
     {:ok, file_handler} = StringIO.open """
     name,url
     Madrid,http://madrid.com
     Natal,http://natal.com.br
     New York,http://newyork.org
     """
+    {:ok, stream} = CsvRecordStream.create(file_handler)
 
-    assert :ok = CsvImporter.call(file_handler)
     assert [
       %City{name: "Madrid", url: "http://madrid.com"},
       %City{name: "Natal", url: "http://natal.com.br"},
       %City{name: "New York", url: "http://newyork.org"}
-    ] = (City |> Repo.all)
+    ] = Enum.to_list(stream)
   end
 
-  test "imports successfully when header fields are switched out" do
+  test "streams the right contents when headers are switched out" do
     {:ok, file_handler} = StringIO.open """
     url,name
     http://madrid.com,Madrid
     http://natal.com.br,Natal
     http://newyork.org,New York
     """
+    {:ok, stream} = CsvRecordStream.create(file_handler)
 
-    assert :ok = CsvImporter.call(file_handler)
     assert [
       %City{name: "Madrid", url: "http://madrid.com"},
       %City{name: "Natal", url: "http://natal.com.br"},
       %City{name: "New York", url: "http://newyork.org"}
-    ] = (City |> Repo.all)
+    ] = Enum.to_list(stream)
   end
 
   test "returns invalid_csv when one of the columns is missing" do
@@ -48,7 +48,7 @@ defmodule CsvImporter.CsvImporterTest do
     Natal
     """
 
-    assert :invalid_csv == CsvImporter.call(file_handler)
+    assert :invalid_csv == CsvRecordStream.create(file_handler)
   end
 
   test "returns invalid_csv when one of the columns has wrong name" do
@@ -58,6 +58,6 @@ defmodule CsvImporter.CsvImporterTest do
     Natal,http://natal.com.br
     """
 
-    assert :invalid_csv == CsvImporter.call(file_handler)
+    assert :invalid_csv == CsvRecordStream.create(file_handler)
   end
 end
