@@ -1,6 +1,6 @@
 defmodule CsvImporter.CsvImporter do
   defmodule CsvRecordStream do
-    alias CsvImporter.{City, Repo}
+    alias CsvImporter.City
 
     @headers ~w(name url)a
 
@@ -11,7 +11,6 @@ defmodule CsvImporter.CsvImporter do
       if valid?(headers) do
         stream = stream
         |> Stream.map(&to_struct(&1, headers))
-        |> Enum.map(&Repo.insert(&1))
 
         {:ok, stream}
       else
@@ -45,9 +44,12 @@ defmodule CsvImporter.CsvImporter do
     end
   end
 
+  alias CsvImporter.Repo
+
   def call(file_handler) when is_pid(file_handler) do
     case CsvRecordStream.create(file_handler) do
-      {:ok, _stream} ->
+      {:ok, stream} ->
+        stream |> Enum.map(&Repo.insert(&1))
         :ok
       error -> error
     end
