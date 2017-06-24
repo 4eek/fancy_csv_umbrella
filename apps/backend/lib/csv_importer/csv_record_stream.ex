@@ -1,14 +1,5 @@
 defmodule CsvImporter.CsvRecordStream do
-  defmodule HeadersValidator do
-    @headers ~w(name url)a
-
-    def valid?(headers) do
-      Enum.count(headers) == Enum.count(@headers) &&
-      Enum.sort(headers) == Enum.sort(@headers)
-    end
-  end
-
-  alias CsvImporter.City
+  alias CsvImporter.{HeadersValidator, City}
 
   def create(file_handler) when is_pid(file_handler) do
     stream = file_handler |> to_stream
