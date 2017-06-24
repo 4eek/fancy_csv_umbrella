@@ -2,7 +2,12 @@ defmodule CsvImporter.CsvImporterTest do
   use DbCase
   alias CsvImporter.{City, CsvImporter}
 
-  # NOTE: Start by testing empty case (just headers)
+  test "does not import when csv has no data lines" do
+    {:ok, file_handler} = StringIO.open("name,url\n")
+
+    assert :ok == CsvImporter.call(file_handler)
+    assert [] == (City |> Repo.all)
+  end
 
   test "imports records from a csv file" do
     {:ok, file_handler} = StringIO.open """
@@ -12,7 +17,7 @@ defmodule CsvImporter.CsvImporterTest do
     New York,http://newyork.org
     """
 
-    assert :ok = CsvImporter.call file_handler
+    assert :ok = CsvImporter.call(file_handler)
     assert [
       %City{name: "Madrid", url: "http://madrid.com"},
       %City{name: "Natal", url: "http://natal.com.br"},
@@ -28,7 +33,7 @@ defmodule CsvImporter.CsvImporterTest do
     http://newyork.org,New York
     """
 
-    assert :ok = CsvImporter.call file_handler
+    assert :ok = CsvImporter.call(file_handler)
     assert [
       %City{name: "Madrid", url: "http://madrid.com"},
       %City{name: "Natal", url: "http://natal.com.br"},
