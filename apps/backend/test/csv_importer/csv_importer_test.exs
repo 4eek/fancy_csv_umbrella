@@ -19,7 +19,7 @@ defmodule CsvImporter.CsvImporterTest do
     ] = (City |> Repo.all)
   end
 
-  test "imports successfully when header is switched out" do
+  test "imports successfully when header fields are switched out" do
     {:ok, file_handler} = StringIO.open """
     url,name
     http://madrid.com,Madrid
