@@ -1,7 +1,7 @@
 defmodule CsvImporter.CsvImporter do
   alias CsvImporter.{City, Repo}
 
-  @headers ~w(name url)
+  @headers ~w(name url)a
 
   def call(file_handler) when is_pid(file_handler) do
     stream = file_handler |> to_stream
@@ -11,13 +11,16 @@ defmodule CsvImporter.CsvImporter do
       stream
       |> Stream.map(&to_struct(&1, headers))
       |> Enum.map(&Repo.insert(&1))
+
+      :ok
     else
       :invalid_csv
     end
   end
 
   defp valid?(headers) do
-    Enum.count(headers) == Enum.count(@headers)
+    Enum.count(headers) == Enum.count(@headers) &&
+    Enum.sort(headers) == Enum.sort(@headers)
   end
 
   defp to_stream(file_handler) do
