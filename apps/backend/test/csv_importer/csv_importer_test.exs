@@ -35,4 +35,14 @@ defmodule CsvImporter.CsvImporterTest do
       %City{name: "New York", url: "http://newyork.org"}
     ] = (City |> Repo.all)
   end
+
+  test "returns invalid_csv when one of the columns is missing" do
+    {:ok, file_handler} = StringIO.open """
+    name
+    Madrid
+    Natal
+    """
+
+    assert :invalid_csv == CsvImporter.call(file_handler)
+  end
 end
