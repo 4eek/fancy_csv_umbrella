@@ -17,8 +17,8 @@ defmodule CsvImporter.IntegrationTest do
     |> CsvImporter.call
 
     assert [
-      %City{name: "Natal", url: "http://natal.com"},
-      %City{name: "Madrid", url: "http://madrid.org"}
-    ] = (City |> Repo.all)
+      %City{name: "Madrid", url: "http://madrid.org"},
+      %City{name: "Natal", url: "http://natal.com"}
+    ] = (City.ordered |> Repo.all)
   end
 end

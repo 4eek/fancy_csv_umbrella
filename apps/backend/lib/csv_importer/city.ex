@@ -6,9 +6,9 @@ defmodule CsvImporter.City do
     field :url, :string
   end
 
-  def find_by_name(name) do
+  def ordered do
     import Ecto.Query
 
-    from c in __MODULE__, where: c.name == ^name
+    __MODULE__ |> order_by(asc: :name)
   end
 end
