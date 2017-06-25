@@ -8,7 +8,9 @@ defmodule CsvImporter.ErrorCsvBuilder do
 
   defp collect_errors(%{errors: errors}) do
     errors
-    |> Enum.map(fn({column, {desc, _}}) -> "#{column} #{desc}" end)
+    |> Enum.map(&assemble_error(&1))
     |> Enum.join
   end
+
+  defp assemble_error({column, {desc, _}}), do: "#{column} #{desc}"
 end
