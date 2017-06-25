@@ -1,9 +1,12 @@
 defmodule CsvImporter.ErrorCsvBuilder do
-  def call({:error, changeset}, record, file_handler) do
-    headers = "name,url,errors\n"
+  def write_header(file_handler) do
+    IO.binwrite file_handler, "name,url,errors\n"
+  end
+
+  def write_line({:error, changeset}, record, file_handler) do
     contents = "#{record.name},#{record.url},#{collect_errors(changeset)}\n"
 
-    IO.binwrite file_handler, headers <> contents
+    IO.binwrite file_handler, contents
   end
 
   defp collect_errors(%{errors: errors}) do
