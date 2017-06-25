@@ -1,8 +1,6 @@
 defmodule CsvImporter.IntegrationTest do
   use DbCase
-  alias CsvImporter.{CsvImporter, City, Repo, CsvRecordStream}
-
-  defp extract_ok_result({:ok, stream}), do: stream
+  alias CsvImporter.{Main, City, Repo}
 
   test "creates records from a csv file" do
     {:ok, pid} = StringIO.open """
@@ -11,11 +9,7 @@ defmodule CsvImporter.IntegrationTest do
     Madrid,http://madrid.org
     """
 
-    pid
-    |> CsvRecordStream.create
-    |> extract_ok_result
-    |> CsvImporter.call
-    |> Enum.to_list
+    pid |> Main.import_file
 
     assert [
       %City{name: "Madrid", url: "http://madrid.org"},
