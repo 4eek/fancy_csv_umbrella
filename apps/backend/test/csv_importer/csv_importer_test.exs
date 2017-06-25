@@ -15,4 +15,15 @@ defmodule CsvImporter.CsvImporterTest do
       %City{name: "Natal", url: "http://natal.com.br"}
     ] = (City.ordered |> Repo.all)
   end
+
+  test "does not create records that are invalid" do
+    records = [
+      %City{name: "Madrid", url: "http://madrid.com"},
+      %City{name: nil, url: "http://invalid.com"},
+    ]
+
+    CsvImporter.call(records)
+
+    assert [%City{name: "Madrid", url: "http://madrid.com"}] = (City |> Repo.all)
+  end
 end

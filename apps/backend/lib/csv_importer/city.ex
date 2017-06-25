@@ -11,4 +11,12 @@ defmodule CsvImporter.City do
 
     __MODULE__ |> order_by(asc: :name)
   end
+
+  def changeset(city, params \\ %{}) do
+    import Ecto.Changeset
+
+    city
+    |> cast(params, [:name, :url])
+    |> validate_required([:name])
+  end
 end
