@@ -3,6 +3,7 @@ defmodule CsvImporter.CsvImporter do
 
   def call(records) do
     records
-    |> Enum.map(&Repo.insert(&1))
+    |> Task.async_stream(Repo, :insert, [], max_concurrency: 10)
+    |> Enum.to_list
   end
 end
