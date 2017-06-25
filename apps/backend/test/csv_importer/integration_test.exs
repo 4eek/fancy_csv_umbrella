@@ -15,6 +15,7 @@ defmodule CsvImporter.IntegrationTest do
     |> CsvRecordStream.create
     |> extract_ok_result
     |> CsvImporter.call
+    |> Enum.to_list
 
     assert [
       %City{name: "Madrid", url: "http://madrid.org"},

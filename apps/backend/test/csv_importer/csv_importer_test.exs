@@ -8,7 +8,7 @@ defmodule CsvImporter.CsvImporterTest do
       %City{name: "Natal", url: "http://natal.com.br"}
     ]
 
-    CsvImporter.call(records)
+    records |> CsvImporter.call |> Enum.to_list
 
     assert [
       %City{name: "Madrid", url: "http://madrid.com"},
@@ -22,7 +22,7 @@ defmodule CsvImporter.CsvImporterTest do
       %City{name: nil, url: "http://invalid.com"},
     ]
 
-    CsvImporter.call(records)
+    records |> CsvImporter.call |> Enum.to_list
 
     assert [%City{name: "Madrid", url: "http://madrid.com"}] = (City |> Repo.all)
   end
