@@ -7,13 +7,16 @@ defmodule CsvImporter.IntegrationTest do
     name,url
     Natal,http://natal.com
     Madrid,http://madrid.org
+    ,http://invalid.com
     """
 
-    pid |> Main.import_file
+    error_csv = pid |> Main.import_file
 
     assert [
       %City{name: "Madrid", url: "http://madrid.org"},
       %City{name: "Natal", url: "http://natal.com"}
     ] = (City.ordered |> Repo.all)
+
+    assert "name,url\n,http://invalid.com\n" == File.read(error_csv)
   end
 end
