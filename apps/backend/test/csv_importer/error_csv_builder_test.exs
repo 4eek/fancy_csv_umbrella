@@ -18,8 +18,18 @@ defmodule CsvImporter.ErrorsCsvBuilderTest do
     record = %City{name: nil, url: "http://invalid.com"}
     changeset = City.changeset(record)
 
-    ErrorCsvBuilder.write_line({:error, changeset}, record, file_handler)
+    ErrorCsvBuilder.write_line({{:error, changeset}, record}, file_handler)
 
     assert ",http://invalid.com,name can't be blank\n" = read_file(file_handler)
+  end
+
+  test "does not append record when it is valid" do
+    {:ok, file_handler} = StringIO.open("")
+    record = %City{name: "Town", url: "http://town.com"}
+    changeset = City.changeset(record)
+
+    ErrorCsvBuilder.write_line({{:ok, changeset}, record}, file_handler)
+
+    assert "" = read_file(file_handler)
   end
 end
