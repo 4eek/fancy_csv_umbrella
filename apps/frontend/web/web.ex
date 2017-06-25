@@ -28,6 +28,8 @@ defmodule Frontend.Web do
 
       import Frontend.Router.Helpers
       import Frontend.Gettext
+
+      @endpoint Frontend.Endpoint
     end
   end
 
