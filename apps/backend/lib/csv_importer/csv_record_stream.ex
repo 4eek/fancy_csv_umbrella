@@ -6,10 +6,7 @@ defmodule CsvImporter.CsvRecordStream do
     headers = stream |> extract_headers
 
     if HeadersValidator.valid?(headers) do
-      stream = stream
-      |> Stream.map(&to_struct(&1, headers))
-
-      {:ok, stream}
+      {:ok, Stream.map(stream, &to_struct(&1, headers))}
     else
       :invalid_csv
     end
