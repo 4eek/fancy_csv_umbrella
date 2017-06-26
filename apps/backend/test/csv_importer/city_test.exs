@@ -1,6 +1,6 @@
-defmodule CsvImporter.CityTest do
+defmodule Backend.CityTest do
   use DbCase
-  alias CsvImporter.{City, Repo}
+  alias Backend.{City, Repo}
 
   test "inserts a valid record" do
     changeset = City.changeset(%City{}, %{name: "Natal", url: "http://natal.com"})

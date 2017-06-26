@@ -1,4 +1,4 @@
-defmodule CsvImporter.ErrorCsvBuilder do
+defmodule Backend.ErrorCsvBuilder do
   def write_header(file_handler) do
     IO.binwrite file_handler, "name,url,errors\n"
   end

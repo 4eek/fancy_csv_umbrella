@@ -1,5 +1,5 @@
-defmodule CsvImporter.CsvImporter do
-  alias CsvImporter.Repo
+defmodule Backend.CsvImporter do
+  alias Backend.Repo
 
   def call(records) do
     records

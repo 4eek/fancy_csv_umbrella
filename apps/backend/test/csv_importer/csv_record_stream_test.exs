@@ -1,6 +1,6 @@
-defmodule CsvImporter.CsvRecordStreamTest do
+defmodule Backend.CsvRecordStreamTest do
   use ExUnit.Case
-  alias CsvImporter.{City, CsvRecordStream}
+  alias Backend.{City, CsvRecordStream}
 
   test "streams an empty collection when csv has no data lines" do
     {:ok, file_handler} = StringIO.open("name,url\n")

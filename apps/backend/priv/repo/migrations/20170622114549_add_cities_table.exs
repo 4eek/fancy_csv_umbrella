@@ -1,4 +1,4 @@
-defmodule CsvImporter.Repo.Migrations.AddCitiesTable do
+defmodule Backend.Repo.Migrations.AddCitiesTable do
   use Ecto.Migration
 
   def change do

@@ -1,5 +1,5 @@
-defmodule CsvImporter.Main do
-  alias CsvImporter.{CsvRecordStream, CsvImporter, ErrorCsvBuilder}
+defmodule Backend.Main do
+  alias Backend.{CsvRecordStream, CsvImporter, ErrorCsvBuilder}
 
   def import_file(input_file_handler, output_file_handler, on_update) do
     ErrorCsvBuilder.write_header(output_file_handler)
@@ -21,9 +21,9 @@ defmodule CsvImporter.Main do
   end
 
   defp sum_result({{status, _}, _}, memo, callback) do
-    status
-    |> do_sum_result(memo)
-    |> callback.()
+    memo = status |> do_sum_result(memo)
+    callback.(memo)
+    memo
   end
 
   def do_sum_result(:ok, memo), do: %{memo | ok: memo.ok + 1}

@@ -1,6 +1,6 @@
-defmodule CsvImporter.CsvImporterTest do
+defmodule Backend.CsvImporterTest do
   use DbCase
-  alias CsvImporter.{CsvImporter, City, Repo}
+  alias Backend.{CsvImporter, City, Repo}
 
   test "creates records from a csv file" do
     records = [

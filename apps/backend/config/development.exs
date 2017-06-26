@@ -1,4 +1,4 @@
-config :csv_importer, CsvImporter.Repo,
+config :backend, Backend.Repo,
   adapter: Ecto.Adapters.Postgres,
   database: "fancy_csv",
   username: "thiago",

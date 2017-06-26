@@ -1,8 +1,8 @@
-defmodule CsvImporter.Mixfile do
+defmodule Backend.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :csv_importer,
+    [app: :backend,
      version: "0.1.0",
      build_path: "../../_build",
      config_path: "../../config/config.exs",
@@ -19,7 +19,7 @@ defmodule CsvImporter.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     # Specify extra applications you'll use from Erlang/Elixir
-    [extra_applications: [:logger, :ecto], mod: {CsvImporter, []}]
+    [extra_applications: [:logger, :ecto], mod: {Backend, []}]
   end
 
   # Dependencies can be Hex packages:

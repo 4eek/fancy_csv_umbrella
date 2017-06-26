@@ -2,7 +2,7 @@ defmodule DbCase do
   defmacro __using__(_opts) do
     quote do
       use ExUnit.Case
-      alias CsvImporter.Repo
+      alias Backend.Repo
 
       setup tags do
         :ok = Ecto.Adapters.SQL.Sandbox.checkout(Repo)

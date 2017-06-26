@@ -1,4 +1,4 @@
-defmodule CsvImporter.City do
+defmodule Backend.City do
   use Ecto.Schema
 
   schema "cities" do

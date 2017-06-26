@@ -2,7 +2,7 @@
 # and its dependencies with the aid of the Mix.Config module.
 use Mix.Config
 
-config :csv_importer, ecto_repos: [CsvImporter.Repo]
+config :backend, ecto_repos: [Backend.Repo]
 
 # This configuration is loaded before any dependency and is restricted
 # to this project. If another project depends on this project, this
@@ -12,11 +12,11 @@ config :csv_importer, ecto_repos: [CsvImporter.Repo]
 
 # You can configure for your application as:
 #
-#     config :csv_importer, key: :value
+#     config :backend, key: :value
 #
 # And access this configuration in your application as:
 #
-#     Application.get_env(:csv_importer, :key)
+#     Application.get_env(:backend, :key)
 #
 # Or configure a 3rd-party app:
 #

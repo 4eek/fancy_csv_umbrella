@@ -1,6 +1,6 @@
-defmodule CsvImporter.IntegrationTest do
+defmodule Backend.IntegrationTest do
   use DbCase
-  alias CsvImporter.{Main, City, Repo}
+  alias Backend.{Main, City, Repo}
   import TestHelper, only: [read_stringio: 1]
 
   test "creates records from a csv file" do

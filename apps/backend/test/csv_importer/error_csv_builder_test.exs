@@ -1,6 +1,6 @@
-defmodule CsvImporter.ErrorsCsvBuilderTest do
+defmodule Backend.ErrorsCsvBuilderTest do
   use ExUnit.Case
-  alias CsvImporter.{City, ErrorCsvBuilder}
+  alias Backend.{City, ErrorCsvBuilder}
   import TestHelper, only: [read_stringio: 1]
 
   test "writes the CSV header to a file" do

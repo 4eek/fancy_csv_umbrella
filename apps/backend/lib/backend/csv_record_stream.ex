@@ -1,5 +1,5 @@
-defmodule CsvImporter.CsvRecordStream do
-  alias CsvImporter.{HeadersValidator, City}
+defmodule Backend.CsvRecordStream do
+  alias Backend.{HeadersValidator, City}
 
   def create(file_handler) when is_pid(file_handler) do
     stream = file_handler |> to_stream

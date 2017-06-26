@@ -1,4 +1,4 @@
-defmodule CsvImporter.Repo.Migrations.AddUrlToCities do
+defmodule Backend.Repo.Migrations.AddUrlToCities do
   use Ecto.Migration
 
   # NOTE: no clause clause matching: {:error, :invalid_message}
