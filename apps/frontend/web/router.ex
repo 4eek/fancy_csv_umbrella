@@ -17,7 +17,7 @@ defmodule Frontend.Router do
     pipe_through :browser # Use the default browser stack
 
     get "/", PageController, :index
-    resources "/city_import", CityImport, only: [:index, :new, :create]
+    resources "/city_import", CityImportController, only: [:index, :new, :create]
   end
 
   # Other scopes may use custom stacks.

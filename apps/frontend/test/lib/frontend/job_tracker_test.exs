@@ -1,5 +1,6 @@
-defmodule JobTrackerTest do
+defmodule Frontend.JobTrackerTest do
   use ExUnit.Case
+  alias Frontend.JobTracker
 
   def add_job(pid, callback) do
     self = self()

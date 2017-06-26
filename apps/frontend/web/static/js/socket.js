@@ -59,9 +59,7 @@ channel.join()
   .receive("ok", resp => { console.log("Joined successfully", resp) })
   .receive("error", resp => { console.log("Unable to join", resp) })
 
-channel.on("change", thing => {
-  console.log("Thing received")
-  console.log(thing)
+channel.on("change", data => {
 })
 
 export default socket
