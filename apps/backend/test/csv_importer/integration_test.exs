@@ -19,7 +19,11 @@ defmodule CsvImporter.IntegrationTest do
       ",http://invalid2.com,name can't be blank\n"
     ] |> Enum.join
 
-    Main.import_file(input_file_handler, output_file_handler)
+    self = self()
+
+    Main.import_file input_file_handler, output_file_handler, fn(status) ->
+      send self, status
+    end
 
     assert [
       %City{name: "Madrid", url: "http://madrid.org"},
@@ -27,5 +31,9 @@ defmodule CsvImporter.IntegrationTest do
     ] = (City.ordered |> Repo.all)
 
     assert expected_output == read_stringio(output_file_handler)
+    assert_receive %{error: 0, ok: 1}
+    assert_receive %{error: 1, ok: 1}
+    assert_receive %{error: 1, ok: 2}
+    assert_receive %{error: 2, ok: 2}
   end
 end
