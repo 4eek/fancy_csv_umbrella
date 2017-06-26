@@ -10,7 +10,7 @@ defmodule Frontend.CityCsvJob do
       {:ok, output} = File.open(output_path, [:write])
 
       Frontend.JobTracker.update(%{id: id, filename: filename})
-      CsvImporter.Main.import_file(input, output, &broadcast_status(id, &1))
+      Backend.Main.import_file(input, output, &broadcast_status(id, &1))
     end
   end
 

@@ -1,6 +1,6 @@
 defmodule Frontend.CityImportControllerTest do
   use Frontend.ConnCase
-  alias CsvImporter.{City, Repo}
+  alias Backend.{City, Repo}
 
   test "GET /city_import/new", %{conn: conn} do
     conn = get conn, city_import_path(@endpoint, :new)

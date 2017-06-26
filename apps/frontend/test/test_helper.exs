@@ -1,4 +1,4 @@
 ExUnit.start
 
-:ok = Ecto.Adapters.SQL.Sandbox.checkout(CsvImporter.Repo)
-Ecto.Adapters.SQL.Sandbox.mode(CsvImporter.Repo, {:shared, self()})
+:ok = Ecto.Adapters.SQL.Sandbox.checkout(Backend.Repo)
+Ecto.Adapters.SQL.Sandbox.mode(Backend.Repo, {:shared, self()})
