@@ -3,13 +3,13 @@ defmodule Frontend.CityImportControllerTest do
   alias CsvImporter.{City, Repo}
 
   test "GET /city_import/new", %{conn: conn} do
-    conn = get conn, "/city_import/new"
+    conn = get conn, city_import_path(@endpoint, :new)
 
     assert html_response(conn, 200)
   end
 
   test "GET /city_import", %{conn: conn} do
-    conn = get conn, "/city_import"
+    conn = get conn, city_import_path(@endpoint, :index)
 
     assert html_response(conn, 200)
   end
