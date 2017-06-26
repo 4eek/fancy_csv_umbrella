@@ -59,7 +59,15 @@ channel.join()
   .receive("ok", resp => { console.log("Joined successfully", resp) })
   .receive("error", resp => { console.log("Unable to join", resp) })
 
+const enabled = document.querySelector('#jobs-table')
+
 channel.on("change", data => {
+  if (!enabled) { return }
+
+  let job = document.querySelector(`.job-${data.id}`)
+
+  job.querySelector('.ok').innerHTML = data.ok
+  job.querySelector('.error').innerHTML = data.error
 })
 
 export default socket

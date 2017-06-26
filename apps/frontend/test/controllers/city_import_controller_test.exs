@@ -16,10 +16,12 @@ defmodule Frontend.CityImportControllerTest do
 
   test "POST /city_import", %{conn: conn} do
     conn = post conn, "/city_import", %{
-      file: %Plug.Upload{
-        path: "test/fixtures/cities.csv",
-        filename: "cities.csv",
-        content_type: "text/csv"
+      city_import: %{
+        file: %Plug.Upload{
+          path: "test/fixtures/cities.csv",
+          filename: "cities.csv",
+          content_type: "text/csv"
+        }
       }
     }
 

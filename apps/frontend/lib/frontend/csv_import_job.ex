@@ -2,15 +2,23 @@ defmodule Frontend.CityCsvJob do
   @upload_path "priv/static/files"
   @tmp_upload_path Path.join(@upload_path, "tmp")
 
-  def enqueue(file) do
+  def enqueue(%Plug.Upload{filename: filename} = file) do
     {input_path, output_path} = prepare_paths(file)
 
-    Frontend.JobTracker.add fn _info ->
-      {:ok, input_file_handler} = File.open(input_path)
-      {:ok, output_file_handler} = File.open(output_path, [:write])
+    Frontend.JobTracker.add fn %{id: id} ->
+      {:ok, input} = File.open(input_path)
+      {:ok, output} = File.open(output_path, [:write])
 
-      CsvImporter.Main.import_file(input_file_handler, output_file_handler)
+      Frontend.JobTracker.update(%{id: id, filename: filename})
+      CsvImporter.Main.import_file(input, output, &broadcast_status(id, &1))
     end
+  end
+
+  defp broadcast_status(id, status) do
+    Process.sleep(2_000)
+    data = status |> Map.merge(%{id: id})
+    Frontend.JobTracker.update data
+    Frontend.Endpoint.broadcast("city_import:status", "change", data)
   end
 
   defp prepare_paths(%Plug.Upload{path: tmp_path, filename: filename}) do
@@ -24,10 +32,10 @@ defmodule Frontend.CityCsvJob do
     {input_path, output_path}
   end
 
-  defp filename(fname) do
+  defp filename(filename) do
     suffix = Ecto.UUID.generate |> binary_part(16, 16)
-    fname = fname |> Path.basename |> Path.rootname
+    filename = filename |> Path.basename |> Path.rootname
 
-    fname <> suffix <> ".csv"
+    filename <> suffix <> ".csv"
   end
 end
