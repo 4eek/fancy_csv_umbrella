@@ -1,0 +1,6 @@
+[submodule "apps/backend"]
+	path = apps/backend
+	url = git@github.com:thiagoa/fancy_csv_backend.git
+[submodule "apps/frontend"]
+	path = apps/frontend
+	url = git@github.com:thiagoa/fancy_csv_frontend.git
