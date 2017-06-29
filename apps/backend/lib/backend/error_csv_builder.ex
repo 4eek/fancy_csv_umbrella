@@ -1,15 +1,20 @@
 defmodule Backend.ErrorCsvBuilder do
-  def write_header(file_handler) do
-    IO.binwrite file_handler, "name,url,errors\n"
+  @headers "name,url,errors\n"
+
+  def new(path, file_module \\ File) do
+    {:ok, device} = file_module.open(path, [:write])
+    IO.binwrite device, @headers
+
+    {:ok, device}
   end
 
-  def write_line({{:error, changeset}, record}, file_handler) do
+  def write_line(device, {{:error, changeset}, record}) do
     contents = "#{record.name},#{record.url},#{collect_errors(changeset)}\n"
 
-    IO.binwrite file_handler, contents
+    IO.binwrite device, contents
   end
 
-  def write_line({{:ok, _}, _}, _), do: nil
+  def write_line(_, {{:ok, _}, _}), do: nil
 
   defp collect_errors(%{errors: errors}) do
     errors

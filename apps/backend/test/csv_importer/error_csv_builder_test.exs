@@ -3,31 +3,36 @@ defmodule Backend.ErrorsCsvBuilderTest do
   alias Backend.{City, ErrorCsvBuilder}
   import TestHelper, only: [read_stringio: 1]
 
-  test "writes the CSV header to a file" do
-    {:ok, file_handler} = StringIO.open("")
+  test "creates a new output csv" do
+    {:ok, device} = ErrorCsvBuilder.new("", StringIO)
 
-    ErrorCsvBuilder.write_header(file_handler)
-
-    assert "name,url,errors\n" = read_stringio(file_handler)
+    assert "name,url,errors\n" = read_stringio(device)
   end
 
-  test "appends an invalid record to a file" do
-    {:ok, file_handler} = StringIO.open("")
+  test "appends an invalid record" do
+    {:ok, device} = ErrorCsvBuilder.new("", StringIO)
+
     record = %City{name: nil, url: "http://invalid.com"}
     changeset = City.changeset(record)
 
-    ErrorCsvBuilder.write_line({{:error, changeset}, record}, file_handler)
+    ErrorCsvBuilder.write_line(device, {{:error, changeset}, record})
 
-    assert ",http://invalid.com,name can't be blank\n" = read_stringio(file_handler)
+    expected_contents = """
+    name,url,errors
+    ,http://invalid.com,name can't be blank
+    """
+
+    assert expected_contents == read_stringio(device)
   end
 
   test "does not append record when it is valid" do
-    {:ok, file_handler} = StringIO.open("")
+    {:ok, device} = ErrorCsvBuilder.new("", StringIO)
+
     record = %City{name: "Town", url: "http://town.com"}
     changeset = City.changeset(record)
 
-    ErrorCsvBuilder.write_line({{:ok, changeset}, record}, file_handler)
+    ErrorCsvBuilder.write_line(device, {{:ok, changeset}, record})
 
-    assert "" = read_stringio(file_handler)
+    assert "name,url,errors\n" = read_stringio(device)
   end
 end

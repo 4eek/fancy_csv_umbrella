@@ -1,36 +1,29 @@
 defmodule Backend.IntegrationTest do
   use DbCase
   alias Backend.{Main, City, Repo}
-  import TestHelper, only: [read_stringio: 1]
 
   test "creates records from a csv file" do
-    {:ok, input_file_handler} = StringIO.open """
-    name,url
-    Natal,http://natal.com
-    ,http://invalid1.com
-    Madrid,http://madrid.org
-    ,http://invalid2.com
-    """
-    {:ok, output_file_handler} = StringIO.open("")
+    input_path = Fixture.path("cities.csv")
+    {:ok, output_path} = Briefly.create
 
-    expected_output = [
-      "name,url,errors\n",
-      ",http://invalid1.com,name can't be blank\n",
-      ",http://invalid2.com,name can't be blank\n"
-    ] |> Enum.join
-
-    self = self()
-
-    Main.import_file input_file_handler, output_file_handler, fn(status) ->
-      send self, status
+    Main.import_file input_path, output_path, fn(status) ->
+      send self(), status
     end
+
+    expected_output = """
+    name,url,errors
+    ,http://invalid1.com,name can't be blank
+    ,http://invalid2.com,name can't be blank
+    """
+
+    {:ok, output} = File.read(output_path)
 
     assert [
       %City{name: "Madrid", url: "http://madrid.org"},
       %City{name: "Natal", url: "http://natal.com"}
     ] = (City.ordered |> Repo.all)
 
-    assert expected_output == read_stringio(output_file_handler)
+    assert expected_output == output
     assert_receive %{error: 0, ok: 1}
     assert_receive %{error: 1, ok: 1}
     assert_receive %{error: 1, ok: 2}

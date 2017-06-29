@@ -1,42 +1,47 @@
 defmodule Backend.Main do
   alias Backend.{CsvRecordStream, ErrorCsvBuilder, Repo}
 
-  def import_file(input_device, output_device, on_update) do
-    ErrorCsvBuilder.write_header(output_device)
+  @stats %{ok: 0, error: 0}
+
+  def import_file(input_path, output_path, on_update) do
+    {:ok, input_device} = File.open(input_path)
+    {:ok, output_device} = ErrorCsvBuilder.new(output_path)
 
     input_device
-    |> create_csv_stream
-    |> import_records
-    |> write_output_csv(output_device)
-    |> sum_and_broadcast_stats(on_update)
+    |> csv_stream
+    |> importable_record_stream
+    |> writeable_output_stream(output_device)
+    |> trigger_enumeration_and_sum_stats(on_update)
+
+    File.close output_device
   end
 
-  defp create_csv_stream(input_device) do
-    {:ok, stream } = CsvRecordStream.create(input_device)
+  defp csv_stream(input_device) do
+    {:ok, stream} = CsvRecordStream.create(input_device)
 
     stream
   end
 
-  defp import_records(stream) do
+  defp importable_record_stream(stream) do
     stream
-    |> Task.async_stream(__MODULE__, :import, [], max_concurrency: 10)
+    |> Task.async_stream(__MODULE__, :import_record, [], max_concurrency: 10)
     |> Stream.map(fn({:ok, tuple}) -> tuple end)
   end
 
-  def import(record = %module{}) do
+  def import_record(record = %module{}) do
     {record |> module.changeset |> Repo.insert, record}
   end
 
-  def write_output_csv(stream, output_device) do
+  def writeable_output_stream(stream, output_device) do
     stream
     |> Stream.map(fn(tuple) ->
-      ErrorCsvBuilder.write_line(tuple, output_device)
+      ErrorCsvBuilder.write_line(output_device, tuple)
       tuple
     end)
   end
 
-  def sum_and_broadcast_stats(tuple, on_update) do
-    Enum.reduce(tuple, %{ok: 0, error: 0}, &sum_stats(&1, &2, on_update))
+  def trigger_enumeration_and_sum_stats(tuple, on_update) do
+    Enum.reduce(tuple, @stats, &sum_stats(&1, &2, on_update))
   end
 
   defp sum_stats({{result, _}, _}, stats, on_update) do

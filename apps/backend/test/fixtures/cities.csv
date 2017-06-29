@@ -1,4 +1,5 @@
 name,url
-One,http://madrid.com
-Two,http://natal.com.br
-Three,http://newyork.org
+Natal,http://natal.com
+,http://invalid1.com
+Madrid,http://madrid.org
+,http://invalid2.com
