@@ -1,6 +1,6 @@
-defmodule Backend.ImportStatsTest do
+defmodule Backend.Csv.ImportStatsTest do
   use ExUnit.Case
-  alias Backend.ImportStats
+  alias Backend.Csv.ImportStats
   import ImportStats
 
   test "has 0 ok and 0 error records when new" do

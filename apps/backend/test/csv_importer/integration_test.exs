@@ -1,6 +1,7 @@
 defmodule Backend.IntegrationTest do
   use DbCase
-  alias Backend.{Main, City, Repo}
+  alias Backend.Csv
+  alias Backend.{City, Repo}
 
   setup do
     {:ok, output_path} = Briefly.create
@@ -10,7 +11,7 @@ defmodule Backend.IntegrationTest do
   test "creates records from a csv file", %{output_path: output_path} do
     input_path = Fixture.path("cities.csv")
 
-    Main.import_file input_path, output_path, fn(stats) ->
+    Csv.Importer.call input_path, output_path, fn(stats) ->
       send self(), stats
     end
 
@@ -37,7 +38,7 @@ defmodule Backend.IntegrationTest do
   test "yields error when csv has invalid headers", %{output_path: output_path} do
     input_path = Fixture.path("invalid_cities.csv")
 
-    Main.import_file input_path, output_path, fn(stats) ->
+    Csv.Importer.call input_path, output_path, fn(stats) ->
       send self(), stats
     end
 

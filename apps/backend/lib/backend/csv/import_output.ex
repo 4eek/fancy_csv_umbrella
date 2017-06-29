@@ -1,4 +1,4 @@
-defmodule Backend.OutputCsv do
+defmodule Backend.Csv.ImportOutput do
   @headers "name,url,errors"
 
   def new(path, file_module \\ File) do

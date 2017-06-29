@@ -1,20 +1,21 @@
-defmodule Backend.Main do
-  alias Backend.{CsvRecordStream, ImportRecord, OutputCsv, ImportStats}
+defmodule Backend.Csv.Importer do
+  alias Backend.Csv.{RecordStream, ImportOutput, ImportStats}
+  alias Backend.SaveRecord
 
   @max_concurrency 10
 
-  def import_file(input_path, output_path, on_update) do
+  def call(input_path, output_path, on_update) do
     {:ok, input_device} = File.open(input_path)
 
     input_device
-    |> CsvRecordStream.create
+    |> RecordStream.create
     |> do_import_file(output_path, ImportStats.new, on_update)
 
     File.close input_device
   end
 
   defp do_import_file({:ok, stream}, output_path, stats, on_update) do
-    {:ok, output_path} = OutputCsv.new(output_path)
+    {:ok, output_path} = ImportOutput.new(output_path)
 
     stream
     |> importable_record_stream
@@ -32,7 +33,7 @@ defmodule Backend.Main do
 
   defp importable_record_stream(stream) do
     stream
-    |> Task.async_stream(ImportRecord, :call, [], max_concurrency: @max_concurrency)
+    |> Task.async_stream(SaveRecord, :call, [], max_concurrency: @max_concurrency)
     |> Stream.map(fn({:ok, changeset}) -> changeset end)
   end
 
@@ -42,7 +43,7 @@ defmodule Backend.Main do
   end
 
   def add_output_line(changeset, output_device) do
-    OutputCsv.add_line output_device, changeset
+    ImportOutput.add_line output_device, changeset
     changeset
   end
 

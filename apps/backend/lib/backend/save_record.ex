@@ -1,4 +1,4 @@
-defmodule Backend.ImportRecord do
+defmodule Backend.SaveRecord do
   def call(%module{} = record) do
     record
     |> module.changeset

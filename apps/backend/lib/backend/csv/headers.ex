@@ -1,4 +1,4 @@
-defmodule Backend.CsvHeaders do
+defmodule Backend.Csv.Headers do
   @headers ~w(name url)a
 
   def valid?(headers) do

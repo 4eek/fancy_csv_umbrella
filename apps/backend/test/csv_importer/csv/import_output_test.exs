@@ -1,18 +1,19 @@
-defmodule Backend.OutputCsvTest do
+defmodule Backend.Csv.ImportOutputTest do
   use ExUnit.Case
-  alias Backend.{City, OutputCsv}
+  alias Backend.City 
+  alias Backend.Csv.ImportOutput
 
   test "creates a new output csv" do
-    {:ok, device} = OutputCsv.new("", StringIO)
+    {:ok, device} = ImportOutput.new("", StringIO)
 
     assert "name,url,errors\n" = TestHelper.read_stringio(device)
   end
 
   test "appends an invalid record" do
-    {:ok, device} = OutputCsv.new("", StringIO)
+    {:ok, device} = ImportOutput.new("", StringIO)
     changeset = %City{name: nil, url: "http://invalid.com"} |> City.changeset
 
-    OutputCsv.add_line(device, {:error, changeset})
+    ImportOutput.add_line(device, {:error, changeset})
 
     expected_contents = """
     name,url,errors
@@ -23,10 +24,10 @@ defmodule Backend.OutputCsvTest do
   end
 
   test "does not append record when it is valid" do
-    {:ok, device} = OutputCsv.new("", StringIO)
+    {:ok, device} = ImportOutput.new("", StringIO)
     changeset = %City{name: "Town", url: "http://town.com"} |> City.changeset
 
-    OutputCsv.add_line(device, {:ok, changeset})
+    ImportOutput.add_line(device, {:ok, changeset})
 
     assert "name,url,errors\n" = TestHelper.read_stringio(device)
   end
@@ -36,7 +37,7 @@ defmodule Backend.OutputCsvTest do
   end
 
   test "returns an error when can not open device" do
-    {:error, reason} = OutputCsv.new("", FakeIO)
+    {:error, reason} = ImportOutput.new("", FakeIO)
 
     assert "failed" == reason
   end
