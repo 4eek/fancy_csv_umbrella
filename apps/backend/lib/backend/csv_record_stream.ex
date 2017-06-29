@@ -1,11 +1,11 @@
 defmodule Backend.CsvRecordStream do
-  alias Backend.{HeadersValidator, City}
+  alias Backend.{CsvHeaders, City}
 
   def create(file_handler) when is_pid(file_handler) do
     stream = file_handler |> to_stream
     headers = stream |> extract_headers
 
-    if HeadersValidator.valid?(headers) do
+    if CsvHeaders.valid?(headers) do
       {:ok, Stream.map(stream, &to_struct(&1, headers))}
     else
       :invalid_csv
