@@ -1,5 +1,7 @@
 defmodule Backend.Main do
-  alias Backend.{CsvRecordStream, OutputCsv, ImportStats, Repo}
+  alias Backend.{CsvRecordStream, ImportRecord, OutputCsv, ImportStats}
+
+  @max_concurrency 10
 
   def import_file(input_path, output_path, on_update) do
     {:ok, input_device} = File.open(input_path)
@@ -17,7 +19,7 @@ defmodule Backend.Main do
     stream
     |> importable_record_stream
     |> writeable_output_stream(output_path)
-    |> trigger_and_sum_stats(stats, on_update)
+    |> kick_off_and_sum_stats(stats, on_update)
 
     File.close output_path
   end
@@ -30,14 +32,8 @@ defmodule Backend.Main do
 
   defp importable_record_stream(stream) do
     stream
-    |> Task.async_stream(__MODULE__, :import_record, [], max_concurrency: 10)
+    |> Task.async_stream(ImportRecord, :call, [], max_concurrency: @max_concurrency)
     |> Stream.map(fn({:ok, changeset}) -> changeset end)
-  end
-
-  def import_record(record = %module{}) do
-    record
-    |> module.changeset
-    |> Repo.insert
   end
 
   def writeable_output_stream(stream, output_device) do
@@ -50,7 +46,7 @@ defmodule Backend.Main do
     changeset
   end
 
-  def trigger_and_sum_stats(changeset, stats, on_update) do
+  def kick_off_and_sum_stats(changeset, stats, on_update) do
     Enum.reduce(changeset, stats, &sum_stats(&2, &1, on_update))
   end
 
