@@ -1,4 +1,4 @@
-defmodule Backend.IntegrationTest do
+defmodule Backend.Csv.ImporterTest do
   use DbCase
   alias Backend.Csv
   alias Backend.{City, Repo}
