@@ -13,10 +13,9 @@ defmodule Backend.OutputCsvTest do
   end
 
   test "appends an invalid record", %{device: device} do
-    record = %City{name: nil, url: "http://invalid.com"}
-    changeset = City.changeset(record)
+    changeset = %City{name: nil, url: "http://invalid.com"} |> City.changeset
 
-    OutputCsv.write_line(device, {{:error, changeset}, record})
+    OutputCsv.add_line(device, {:error, changeset})
 
     expected_contents = """
     name,url,errors
@@ -27,10 +26,9 @@ defmodule Backend.OutputCsvTest do
   end
 
   test "does not append record when it is valid", %{device: device} do
-    record = %City{name: "Town", url: "http://town.com"}
-    changeset = City.changeset(record)
+    changeset = %City{name: "Town", url: "http://town.com"} |> City.changeset
 
-    OutputCsv.write_line(device, {{:ok, changeset}, record})
+    OutputCsv.add_line(device, {:ok, changeset})
 
     assert "name,url,errors\n" = read_stringio(device)
   end

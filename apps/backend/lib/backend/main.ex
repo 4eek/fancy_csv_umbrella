@@ -11,8 +11,9 @@ defmodule Backend.Main do
     |> csv_stream
     |> importable_record_stream
     |> writeable_output_stream(output_device)
-    |> trigger_enumeration_and_sum_stats(on_update)
+    |> trigger_and_sum_stats(on_update)
 
+    File.close input_device
     File.close output_device
   end
 
@@ -25,27 +26,33 @@ defmodule Backend.Main do
   defp importable_record_stream(stream) do
     stream
     |> Task.async_stream(__MODULE__, :import_record, [], max_concurrency: 10)
-    |> Stream.map(fn({:ok, tuple}) -> tuple end)
+    |> Stream.map(fn({:ok, changeset}) -> changeset end)
   end
 
   def import_record(record = %module{}) do
-    {record |> module.changeset |> Repo.insert, record}
+    record
+    |> module.changeset
+    |> Repo.insert
   end
 
   def writeable_output_stream(stream, output_device) do
     stream
-    |> Stream.map(fn(tuple) ->
-      OutputCsv.write_line(output_device, tuple)
-      tuple
-    end)
+    |> Stream.map(&add_output_line(&1, output_device))
   end
 
-  def trigger_enumeration_and_sum_stats(tuple, on_update) do
-    Enum.reduce(tuple, @stats, &sum_stats(&1, &2, on_update))
+  def add_output_line(changeset, output_device) do
+    OutputCsv.add_line output_device, changeset
+    changeset
   end
 
-  defp sum_stats({{result, _}, _}, stats, on_update) do
-    result |> sum_stats(stats) |> on_update.()
+  def trigger_and_sum_stats(changeset, on_update) do
+    Enum.reduce(changeset, @stats, &sum_stats(&1, &2, on_update))
+  end
+
+  defp sum_stats({result, _}, stats, on_update) do
+    result
+    |> sum_stats(stats)
+    |> on_update.()
   end
 
   def sum_stats(:ok, stats), do: %{stats | ok: stats.ok + 1}

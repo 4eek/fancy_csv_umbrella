@@ -12,20 +12,24 @@ defmodule Backend.OutputCsv do
 
   defp write(device, contents), do: device |> IO.binwrite(contents <> "\n")
 
-  def write_line(device, {{:error, changeset}, record}) do
-    line = changeset |> assemble_line(record)
-    device |> write(line)
+  def add_line(_device, {:ok, _changeset}), do: nil
+  def add_line(device, {:error, changeset}), do: write device, to_line(changeset)
+
+  defp to_line(changeset) do
+    (fetch_fields(changeset, [:name, :url]) ++ [errors(changeset)])
+    |> Enum.join(",")
   end
 
-  def write_line(_device, {{:ok, _changeset}, _record}), do: nil
-
-  def assemble_line(changeset, %{name: name, url: url}) do
-    [name, url, errors(changeset)] |> Enum.join(",")
+  defp fetch_fields(changeset, fields) do
+    for name <- fields do
+      {_, value} = changeset |> Ecto.Changeset.fetch_field(name)
+      value
+    end
   end
 
   defp errors(%{errors: errors}) do
-    errors |> Enum.map(&assemble_error(&1)) |> Enum.join(" ")
+    errors |> Enum.map(&to_messages(&1)) |> Enum.join(" ")
   end
 
-  defp assemble_error({column, {desc, _}}), do: "#{column} #{desc}"
+  defp to_messages({column, {desc, _}}), do: "#{column} #{desc}"
 end
