@@ -1,9 +1,10 @@
 defmodule Backend.Csv.RecordStream do
   alias Backend.Csv.Headers
   alias Backend.City
+  alias NimbleCSV.RFC4180, as: Parser
 
-  def create(file_handler) when is_pid(file_handler) do
-    stream = file_handler |> to_stream
+  def create(device) when is_pid(device) do
+    stream = device |> to_stream
     headers = stream |> extract_headers
 
     if Headers.valid?(headers) do
@@ -13,11 +14,10 @@ defmodule Backend.Csv.RecordStream do
     end
   end
 
-  defp to_stream(file_handler) do
-    file_handler
+  defp to_stream(device) do
+    device
     |> IO.stream(:line)
-    |> Stream.map(&String.strip/1)
-    |> Stream.map(&String.split(&1, ","))
+    |> Parser.parse_stream(headers: false)
   end
 
   defp extract_headers(stream) do

@@ -9,7 +9,7 @@ defmodule Backend.Csv.ImportOutputTest do
     assert "name,url,errors\n" = TestHelper.read_stringio(device)
   end
 
-  test "appends an invalid record" do
+  test "appends an invalid record to the output file" do
     {:ok, device} = ImportOutput.new("", StringIO)
     changeset = %City{name: nil, url: "http://invalid.com"} |> City.changeset
 
@@ -23,7 +23,21 @@ defmodule Backend.Csv.ImportOutputTest do
     assert expected_contents == TestHelper.read_stringio(device)
   end
 
-  test "does not append record when it is valid" do
+  test "appends correctly when more than one validation error" do
+    {:ok, device} = ImportOutput.new("", StringIO)
+    changeset = %City{name: nil, url: nil} |> City.changeset
+
+    ImportOutput.add_line(device, {:error, changeset})
+
+    expected_contents = """
+    name,url,errors
+    ,,"name can't be blank, url can't be blank"
+    """
+
+    assert expected_contents == TestHelper.read_stringio(device)
+  end
+
+  test "does not append to output file when record is valid" do
     {:ok, device} = ImportOutput.new("", StringIO)
     changeset = %City{name: "Town", url: "http://town.com"} |> City.changeset
 

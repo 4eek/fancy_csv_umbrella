@@ -1,7 +1,7 @@
 defmodule Backend.SaveRecord do
-  def call(%module{} = record) do
+  def call(%mod{} = record) do
     record
-    |> module.changeset
+    |> mod.changeset
     |> Backend.Repo.insert
   end
 end

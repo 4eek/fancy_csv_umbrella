@@ -16,7 +16,7 @@ defmodule Backend.City do
     import Ecto.Changeset
 
     city
-    |> cast(params, [:name, :url])
-    |> validate_required([:name])
+    |> cast(params, ~w(name url)a)
+    |> validate_required(~w(name url)a)
   end
 end

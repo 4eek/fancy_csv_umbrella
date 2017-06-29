@@ -1,39 +1,47 @@
 defmodule Backend.Csv.ImportOutput do
-  @headers "name,url,errors"
+  alias NimbleCSV.RFC4180, as: Parser
+  alias Ecto.Changeset
 
-  def new(path, file_module \\ File) do
-    case file_module.open(path, [:write]) do
-      {:ok, device} = value ->
-        write device, @headers
-        value
+  @headers ~w(name url)a
+
+  def new(path, mod \\ File) do
+    case mod.open(path, [:write]) do
+      {:ok, device} = tuple ->
+        write device, dump_line([@headers ++ [:errors]])
+        tuple
       {:error, message} -> {:error, message}
     end
   end
 
-  defp write(device, contents), do: IO.binwrite device, contents <> "\n"
+  defp write(device, contents), do: IO.binwrite device, contents
 
-  def add_line(_device, {:ok, _changeset}), do: nil
-  def add_line(device, {:error, changeset}), do: write device, to_line(changeset)
+  def add_line(_device, {:ok, %{}}), do: nil
+  def add_line(device, {:error, %Changeset{} = changeset}) do
+    write device, dump_line(changeset)
+  end
 
-  defp to_line(changeset) do
+  defp dump_line(%Changeset{} = changeset) do
     changeset
-    |> get_fields
-    |> Enum.join(",")
+    |> extract_columns
+    |> dump_line
   end
 
-  defp get_fields(changeset) do
-    do_get_fields(changeset, [:name, :url]) ++ [errors(changeset)]
+  defp dump_line(line), do: Parser.dump_to_iodata line
+
+  defp extract_columns(changeset) do
+    [extract_fields(changeset) ++ [extract_errors(changeset)]]
   end
 
-  defp do_get_fields(changeset, fields) do
-    for name <- fields, do: Ecto.Changeset.get_field(changeset, name)
+  defp extract_fields(changeset) do
+    @headers
+    |> Enum.map(&Changeset.get_field(changeset, &1))
   end
 
-  defp errors(%{errors: errors}) do
+  defp extract_errors(%{errors: errors}) do
     errors
-    |> Enum.map(&to_messages(&1))
-    |> Enum.join(" ")
+    |> Enum.map(&format_error(&1))
+    |> Enum.join(", ")
   end
 
-  defp to_messages({column, {error_message, _}}), do: "#{column} #{error_message}"
+  defp format_error({column, {message, _}}), do: "#{column} #{message}"
 end
