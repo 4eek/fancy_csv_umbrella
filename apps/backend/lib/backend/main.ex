@@ -1,11 +1,11 @@
 defmodule Backend.Main do
-  alias Backend.{CsvRecordStream, ErrorCsvBuilder, Repo}
+  alias Backend.{CsvRecordStream, OutputCsv, Repo}
 
   @stats %{ok: 0, error: 0}
 
   def import_file(input_path, output_path, on_update) do
     {:ok, input_device} = File.open(input_path)
-    {:ok, output_device} = ErrorCsvBuilder.new(output_path)
+    {:ok, output_device} = OutputCsv.new(output_path)
 
     input_device
     |> csv_stream
@@ -35,7 +35,7 @@ defmodule Backend.Main do
   def writeable_output_stream(stream, output_device) do
     stream
     |> Stream.map(fn(tuple) ->
-      ErrorCsvBuilder.write_line(output_device, tuple)
+      OutputCsv.write_line(output_device, tuple)
       tuple
     end)
   end
