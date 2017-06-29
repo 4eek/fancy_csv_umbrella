@@ -1,25 +1,30 @@
 defmodule Backend.OutputCsv do
-  @headers "name,url,errors\n"
+  @headers "name,url,errors"
 
   def new(path, file_module \\ File) do
-    {:ok, device} = file_module.open(path, [:write])
-    IO.binwrite device, @headers
-
-    {:ok, device}
+    case file_module.open(path, [:write]) do
+      {:ok, device} = value ->
+        write device, @headers
+        value
+      other -> other
+    end
   end
+
+  defp write(device, contents), do: device |> IO.binwrite(contents <> "\n")
 
   def write_line(device, {{:error, changeset}, record}) do
-    contents = "#{record.name},#{record.url},#{collect_errors(changeset)}\n"
-
-    IO.binwrite device, contents
+    line = changeset |> assemble_line(record)
+    device |> write(line)
   end
 
-  def write_line(_, {{:ok, _}, _}), do: nil
+  def write_line(_device, {{:ok, _changeset}, _record}), do: nil
 
-  defp collect_errors(%{errors: errors}) do
-    errors
-    |> Enum.map(&assemble_error(&1))
-    |> Enum.join(" ")
+  def assemble_line(changeset, %{name: name, url: url}) do
+    [name, url, errors(changeset)] |> Enum.join(",")
+  end
+
+  defp errors(%{errors: errors}) do
+    errors |> Enum.map(&assemble_error(&1)) |> Enum.join(" ")
   end
 
   defp assemble_error({column, {desc, _}}), do: "#{column} #{desc}"
