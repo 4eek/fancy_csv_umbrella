@@ -5,22 +5,29 @@ defmodule Backend.Main do
 
   def import_file(input_path, output_path, on_update) do
     {:ok, input_device} = File.open(input_path)
-    {:ok, output_device} = OutputCsv.new(output_path)
 
     input_device
-    |> csv_stream
-    |> importable_record_stream
-    |> writeable_output_stream(output_device)
-    |> trigger_and_sum_stats(on_update)
+    |> CsvRecordStream.create
+    |> do_import_file(output_path, on_update)
 
     File.close input_device
-    File.close output_device
   end
 
-  defp csv_stream(input_device) do
-    {:ok, stream} = CsvRecordStream.create(input_device)
+  defp do_import_file({:ok, stream}, output_path, on_update) do
+    {:ok, output_path} = OutputCsv.new(output_path)
 
     stream
+    |> importable_record_stream
+    |> writeable_output_stream(output_path)
+    |> trigger_and_sum_stats(on_update)
+
+    File.close output_path
+  end
+
+  defp do_import_file(:invalid_csv, _, on_update) do
+    @stats
+    |> Map.merge(%{message: "Invalid CSV headers"})
+    |> on_update.()
   end
 
   defp importable_record_stream(stream) do

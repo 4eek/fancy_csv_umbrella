@@ -29,4 +29,15 @@ defmodule Backend.IntegrationTest do
     assert_receive %{error: 1, ok: 2}
     assert_receive %{error: 2, ok: 2}
   end
+
+  test "yields error when csv has invalid headers" do
+    input_path = Fixture.path("invalid_cities.csv")
+    {:ok, output_path} = Briefly.create
+
+    Main.import_file input_path, output_path, fn(status) ->
+      send self(), status
+    end
+
+    assert_receive %{error: 0, ok: 0, message: "Invalid CSV headers"}
+  end
 end
