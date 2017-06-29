@@ -1,32 +1,30 @@
 defmodule Backend.Main do
-  alias Backend.{CsvRecordStream, OutputCsv, Repo}
-
-  @stats %{ok: 0, error: 0}
+  alias Backend.{CsvRecordStream, OutputCsv, ImportStats, Repo}
 
   def import_file(input_path, output_path, on_update) do
     {:ok, input_device} = File.open(input_path)
 
     input_device
     |> CsvRecordStream.create
-    |> do_import_file(output_path, on_update)
+    |> do_import_file(output_path, ImportStats.new, on_update)
 
     File.close input_device
   end
 
-  defp do_import_file({:ok, stream}, output_path, on_update) do
+  defp do_import_file({:ok, stream}, output_path, stats, on_update) do
     {:ok, output_path} = OutputCsv.new(output_path)
 
     stream
     |> importable_record_stream
     |> writeable_output_stream(output_path)
-    |> trigger_and_sum_stats(on_update)
+    |> trigger_and_sum_stats(stats, on_update)
 
     File.close output_path
   end
 
-  defp do_import_file(:invalid_csv, _, on_update) do
-    @stats
-    |> Map.merge(%{message: "Invalid CSV headers"})
+  defp do_import_file(:invalid_csv, _, stats, on_update) do
+    stats
+    |> ImportStats.update(message: "Invalid CSV headers")
     |> on_update.()
   end
 
@@ -52,16 +50,13 @@ defmodule Backend.Main do
     changeset
   end
 
-  def trigger_and_sum_stats(changeset, on_update) do
-    Enum.reduce(changeset, @stats, &sum_stats(&1, &2, on_update))
+  def trigger_and_sum_stats(changeset, stats, on_update) do
+    Enum.reduce(changeset, stats, &sum_stats(&2, &1, on_update))
   end
 
-  defp sum_stats({result, _}, stats, on_update) do
-    result
-    |> sum_stats(stats)
+  defp sum_stats(stats, {result, _}, on_update) do
+    stats
+    |> ImportStats.update(result)
     |> on_update.()
   end
-
-  def sum_stats(:ok, stats), do: %{stats | ok: stats.ok + 1}
-  def sum_stats(:error, stats), do: %{stats | error: stats.error + 1}
 end
