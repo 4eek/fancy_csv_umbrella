@@ -5,9 +5,9 @@ defmodule Backend.Csv.ImporterTest do
 
   setup do
     {:ok, output_path} = Briefly.create
-    csv_definition = %Csv.Format{headers: ~w(name url)a, type: City}
+    format = %Csv.Format{headers: ~w(name url)a, type: City}
 
-    {:ok, output_path: output_path, format: csv_definition}
+    {:ok, output_path: output_path, format: format}
   end
 
   test "creates records from a csv file", %{output_path: output_path, format: format} do
