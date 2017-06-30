@@ -1,13 +1,14 @@
 defmodule Frontend.CityCsvJob do
   @upload_path "priv/static/files"
   @tmp_upload_path Path.join(@upload_path, "tmp")
+  @format %Backend.Csv.Format{headers: ~w(name url)a, type: Backend.City}
 
   def enqueue(%Plug.Upload{filename: filename} = file) do
     {input_path, output_path} = prepare_paths(file)
 
     Frontend.JobTracker.add fn %{id: id} ->
       Frontend.JobTracker.update(%{id: id, filename: filename})
-      Backend.Csv.Importer.call(input_path, output_path, &broadcast_status(id, &1))
+      Backend.Csv.Importer.call(input_path, output_path, @format, &broadcast_status(id, &1))
     end
   end
 
