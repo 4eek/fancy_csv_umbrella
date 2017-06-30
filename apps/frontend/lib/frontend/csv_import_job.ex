@@ -1,22 +1,25 @@
 defmodule Frontend.CityCsvJob do
+  alias Frontend.{JobTracker, Endpoint}
+  alias Backend.{Csv, City}
+
   @upload_path "priv/static/files"
   @tmp_upload_path Path.join(@upload_path, "tmp")
-  @format %Backend.Csv.Format{headers: ~w(name url)a, type: Backend.City}
+  @format %Csv.Format{headers: ~w(name url)a, type: City}
 
   def enqueue(%Plug.Upload{filename: filename} = file) do
     {input_path, output_path} = prepare_paths(file)
 
-    Frontend.JobTracker.add fn %{id: id} ->
-      Frontend.JobTracker.update(%{id: id, filename: filename})
-      Backend.Csv.Importer.call(input_path, output_path, @format, &broadcast_status(id, &1))
+    JobTracker.add fn %{id: id} ->
+      JobTracker.update(%{id: id, filename: filename})
+      Csv.Importer.call(input_path, output_path, @format, &broadcast(id, &1))
     end
   end
 
-  defp broadcast_status(id, status) do
-    Process.sleep(2_000)
+  defp broadcast(id, status) do
     data = status |> Map.merge(%{id: id})
-    Frontend.JobTracker.update data
-    Frontend.Endpoint.broadcast("city_import:status", "change", data)
+
+    JobTracker.update data
+    Endpoint.broadcast("city_import:status", "change", data)
   end
 
   defp prepare_paths(%Plug.Upload{path: tmp_path, filename: filename}) do

@@ -1,6 +1,6 @@
 defmodule Frontend.CityImportControllerTest do
   use Frontend.ConnCase
-  alias Backend.{City, Repo}
+  alias Backend.City
 
   test "GET /city_import/new", %{conn: conn} do
     conn = get conn, city_import_path(@endpoint, :new)
@@ -33,6 +33,6 @@ defmodule Frontend.CityImportControllerTest do
       %City{name: "Madrid"},
       %City{name: "Natal"},
       %City{name: "New York"}
-    ] = (City.ordered |> Repo.all)
+    ] = City.all
   end
 end
