@@ -2,38 +2,38 @@ defmodule Backend.Csv.ImportOutput do
   alias NimbleCSV.RFC4180, as: Parser
   alias Ecto.Changeset
 
-  @headers ~w(name url)a
-
-  def new(path, mod \\ File) do
+  def new(path, headers, mod \\ File) do
     case mod.open(path, [:write]) do
       {:ok, device} = tuple ->
-        write device, dump_line([@headers ++ [:errors]])
-        tuple
+        write device, dump_line([headers ++ [:errors]])
+        {:ok, {device, headers}}
       {:error, message} -> {:error, message}
     end
   end
 
   defp write(device, contents), do: IO.binwrite device, contents
 
-  def add_line(_device, {:ok, %{}}), do: nil
-  def add_line(device, {:error, %Changeset{} = changeset}) do
-    write device, dump_line(changeset)
+  def add_line(_output, {:ok, %{}}), do: nil
+  def add_line({device, headers}, {:error, %Changeset{} = changeset}) do
+    write device, dump_line(changeset, headers)
   end
 
-  defp dump_line(%Changeset{} = changeset) do
+  def close({device, _}), do: File.close(device)
+
+  defp dump_line(%Changeset{} = changeset, headers) do
     changeset
-    |> extract_columns
+    |> extract_columns(headers)
     |> dump_line
   end
 
   defp dump_line(line), do: Parser.dump_to_iodata line
 
-  defp extract_columns(changeset) do
-    [extract_fields(changeset) ++ [extract_errors(changeset)]]
+  defp extract_columns(changeset, headers) do
+    [extract_fields(changeset, headers) ++ [extract_errors(changeset)]]
   end
 
-  defp extract_fields(changeset) do
-    @headers
+  defp extract_fields(changeset, headers) do
+    headers
     |> Enum.map(&Changeset.get_field(changeset, &1))
   end
 
