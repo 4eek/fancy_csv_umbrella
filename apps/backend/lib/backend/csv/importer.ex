@@ -37,17 +37,17 @@ defmodule Backend.Csv.Importer do
     |> Stream.map(fn({:ok, changeset}) -> changeset end)
   end
 
-  def writeable_output_stream(stream, output) do
+  defp writeable_output_stream(stream, output) do
     stream
-    |> Stream.map(&add_output_line(&1, output))
+    |> Stream.map(&add_output_row(&1, output))
   end
 
-  def add_output_line(changeset, output) do
-    ImportOutput.add_line output, changeset
+  defp add_output_row(changeset, output) do
+    ImportOutput.add_row output, changeset
     changeset
   end
 
-  def kick_off_and_sum_stats(changeset, stats, on_update) do
+  defp kick_off_and_sum_stats(changeset, stats, on_update) do
     Enum.reduce(changeset, stats, &sum_stats(&2, &1, on_update))
   end
 

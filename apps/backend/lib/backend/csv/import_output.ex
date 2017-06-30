@@ -4,8 +4,8 @@ defmodule Backend.Csv.ImportOutput do
 
   def new(path, headers, mod \\ File) do
     case mod.open(path, [:write]) do
-      {:ok, device} = tuple ->
-        write device, dump_line([headers ++ [:errors]])
+      {:ok, device} ->
+        write device, dump_row([headers ++ [:errors]])
         {:ok, {device, headers}}
       {:error, message} -> {:error, message}
     end
@@ -13,20 +13,20 @@ defmodule Backend.Csv.ImportOutput do
 
   defp write(device, contents), do: IO.binwrite device, contents
 
-  def add_line(_output, {:ok, %{}}), do: nil
-  def add_line({device, headers}, {:error, %Changeset{} = changeset}) do
-    write device, dump_line(changeset, headers)
+  def add_row(_output, {:ok, %{}}), do: nil
+  def add_row({device, headers}, {:error, %Changeset{} = changeset}) do
+    write device, dump_row(changeset, headers)
   end
 
   def close({device, _}), do: File.close(device)
 
-  defp dump_line(%Changeset{} = changeset, headers) do
+  defp dump_row(%Changeset{} = changeset, headers) do
     changeset
     |> extract_columns(headers)
-    |> dump_line
+    |> dump_row
   end
 
-  defp dump_line(line), do: Parser.dump_to_iodata line
+  defp dump_row(row), do: Parser.dump_to_iodata row
 
   defp extract_columns(changeset, headers) do
     [extract_fields(changeset, headers) ++ [extract_errors(changeset)]]

@@ -17,7 +17,7 @@ defmodule Backend.Csv.ImportOutputTest do
     {:ok, output} = ImportOutput.new("", @headers, StringIO)
     changeset = %City{name: nil, url: "http://invalid.com"} |> City.changeset
 
-    ImportOutput.add_line(output, {:error, changeset})
+    ImportOutput.add_row(output, {:error, changeset})
 
     expected_contents = """
     name,url,errors
@@ -31,7 +31,7 @@ defmodule Backend.Csv.ImportOutputTest do
     {:ok, output} = ImportOutput.new("", @headers, StringIO)
     changeset = %City{name: nil, url: nil} |> City.changeset
 
-    ImportOutput.add_line(output, {:error, changeset})
+    ImportOutput.add_row(output, {:error, changeset})
 
     expected_contents = """
     name,url,errors
@@ -45,7 +45,7 @@ defmodule Backend.Csv.ImportOutputTest do
     {:ok, output} = ImportOutput.new("", @headers, StringIO)
     changeset = %City{name: "Town", url: "http://town.com"} |> City.changeset
 
-    ImportOutput.add_line(output, {:ok, changeset})
+    ImportOutput.add_row(output, {:ok, changeset})
 
     assert "name,url,errors\n" = read_device(output)
   end

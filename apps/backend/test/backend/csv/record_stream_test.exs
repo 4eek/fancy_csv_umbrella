@@ -7,7 +7,7 @@ defmodule Backend.Csv.RecordStreamTest do
     {:ok, format: %Format{headers: ~w(name url)a, type: City}}
   end
 
-  test "streams an empty collection when csv has no data lines", %{format: format} do
+  test "streams an empty collection when csv has no rows", %{format: format} do
     {:ok, file_handler} = StringIO.open("name,url\n")
     {:ok, stream} = RecordStream.create(file_handler, format)
 
