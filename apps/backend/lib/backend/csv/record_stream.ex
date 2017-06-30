@@ -1,8 +1,7 @@
 defmodule Backend.Csv.RecordStream do
-  alias Backend.Csv.Format
-  alias NimbleCSV.RFC4180, as: Parser
+  alias Backend.Csv
 
-  def new(device, %Format{headers: valid_headers, type: type}) do
+  def new(device, %Csv.Format{headers: valid_headers, type: type}) do
     stream = device |> to_stream
     headers = stream |> extract_headers
 
@@ -20,7 +19,7 @@ defmodule Backend.Csv.RecordStream do
   defp to_stream(device) do
     device
     |> IO.stream(:line)
-    |> Parser.parse_stream(headers: false)
+    |> Csv.Parser.parse_stream(headers: false)
   end
 
   defp extract_headers(stream) do

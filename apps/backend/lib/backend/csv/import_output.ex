@@ -1,5 +1,4 @@
 defmodule Backend.Csv.ImportOutput do
-  alias NimbleCSV.RFC4180, as: Parser
   alias Ecto.Changeset
 
   def new(path, headers, mod \\ File) do
@@ -26,7 +25,7 @@ defmodule Backend.Csv.ImportOutput do
     |> dump_row
   end
 
-  defp dump_row(row), do: Parser.dump_to_iodata row
+  defp dump_row(row), do: Csv.Parser.dump_to_iodata row
 
   defp extract_columns(changeset, headers) do
     [extract_fields(changeset, headers) ++ [extract_errors(changeset)]]
