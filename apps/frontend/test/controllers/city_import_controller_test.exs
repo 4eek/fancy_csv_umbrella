@@ -1,5 +1,7 @@
 defmodule Frontend.CityImportControllerTest do
   use Frontend.ConnCase
+  import Phoenix.ChannelTest, only: [assert_broadcast: 2]
+  alias Frontend.JobTracker
   alias Backend.City
 
   test "GET /city_import/new", %{conn: conn} do
@@ -15,6 +17,8 @@ defmodule Frontend.CityImportControllerTest do
   end
 
   test "POST /city_import", %{conn: conn} do
+    @endpoint.subscribe("city_import:status")
+
     conn = post conn, "/city_import", %{
       city_import: %{
         file: %Plug.Upload{
@@ -25,14 +29,15 @@ defmodule Frontend.CityImportControllerTest do
       }
     }
 
-    Process.sleep(30)
+    Process.sleep(100)
 
-    assert [%{id: 1}] = Frontend.JobTracker.all
+    assert [%{id: 1, ok: 3, error: 0, filename: "cities.csv"}] = JobTracker.all
+
+    assert_broadcast "change", %{error: 0, ok: 1, message: ""}
+    assert_broadcast "change", %{error: 0, ok: 2, message: ""}
+    assert_broadcast "change", %{error: 0, ok: 3, message: ""}
+
     assert redirected_to(conn) == city_import_path(@endpoint, :index)
-    assert [
-      %City{name: "Madrid"},
-      %City{name: "Natal"},
-      %City{name: "New York"}
-    ] = City.all
+    assert ["Madrid", "Natal", "New York"] == Enum.map(City.all, &(&1.name))
   end
 end
