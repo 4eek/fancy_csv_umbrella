@@ -1,28 +1,28 @@
 defmodule Backend.Csv.Importer do
-  alias Backend.Csv.{RecordStream, ImportOutput, ImportStats}
+  alias Backend.Csv.{RecordStream, ImportOutput, ImportStats, Format}
   alias Backend.SaveRecord
 
   @max_concurrency 10
 
-  def call(input_path, output_path, on_update) do
+  def call(input_path, output_path, format = %Format{}, on_update) do
     {:ok, input_device} = File.open(input_path)
 
     input_device
-    |> RecordStream.create
+    |> RecordStream.create(format)
     |> do_import_file(output_path, ImportStats.new, on_update)
 
     File.close input_device
   end
 
   defp do_import_file({:ok, stream}, output_path, stats, on_update) do
-    {:ok, output_path} = ImportOutput.new(output_path)
+    {:ok, output_device} = ImportOutput.new(output_path)
 
     stream
     |> importable_record_stream
-    |> writeable_output_stream(output_path)
+    |> writeable_output_stream(output_device)
     |> kick_off_and_sum_stats(stats, on_update)
 
-    File.close output_path
+    File.close output_device
   end
 
   defp do_import_file(:invalid_csv, _, stats, on_update) do

@@ -14,4 +14,11 @@ defmodule Backend.CityTest do
     assert {:error, changeset} = Repo.insert(changeset)
     assert {"can't be blank", _} = changeset.errors[:name]
   end
+
+  test "does insert when url is missing" do
+    changeset = City.changeset(%City{}, %{name: "Foo", url: nil})
+
+    assert {:error, changeset} = Repo.insert(changeset)
+    assert {"can't be blank", _} = changeset.errors[:url]
+  end
 end

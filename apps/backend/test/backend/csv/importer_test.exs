@@ -5,13 +5,15 @@ defmodule Backend.Csv.ImporterTest do
 
   setup do
     {:ok, output_path} = Briefly.create
-    {:ok, output_path: output_path}
+    csv_definition = %Csv.Format{headers: ~w(name url)a, type: City}
+
+    {:ok, output_path: output_path, format: csv_definition}
   end
 
-  test "creates records from a csv file", %{output_path: output_path} do
+  test "creates records from a csv file", %{output_path: output_path, format: format} do
     input_path = Fixture.path("cities.csv")
 
-    Csv.Importer.call input_path, output_path, fn(stats) ->
+    Csv.Importer.call input_path, output_path, format, fn(stats) ->
       send self(), stats
     end
 
@@ -35,10 +37,10 @@ defmodule Backend.Csv.ImporterTest do
     assert_receive %{error: 2, ok: 2}
   end
 
-  test "yields error when csv has invalid headers", %{output_path: output_path} do
+  test "yields error when csv has invalid headers", %{output_path: output_path, format: format} do
     input_path = Fixture.path("invalid_cities.csv")
 
-    Csv.Importer.call input_path, output_path, fn(stats) ->
+    Csv.Importer.call input_path, output_path, format, fn(stats) ->
       send self(), stats
     end
 
