@@ -29,7 +29,7 @@ defmodule Frontend.CityImportControllerTest do
       }
     }
 
-    Process.sleep(100)
+    :ok = BackgroundJob.await_all
 
     assert [%{id: 1, ok: 3, error: 0, filename: "cities.csv"}] = BackgroundJob.all
 

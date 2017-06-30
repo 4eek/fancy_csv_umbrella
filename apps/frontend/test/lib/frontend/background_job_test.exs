@@ -21,8 +21,8 @@ defmodule Frontend.BackgroundJobTest do
     end
 
     assert_receive "job"
-    assert [%{id: 1, pid: pid}] = BackgroundJob.all(pid)
-    assert is_pid(pid)
+    assert [%{id: 1, task: task}] = BackgroundJob.all(pid)
+    assert %Task{} = task
   end
 
   test "registers two jobs", %{pid: pid} do

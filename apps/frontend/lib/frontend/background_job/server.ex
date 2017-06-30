@@ -10,10 +10,10 @@ defmodule Frontend.BackgroundJob.Server do
   end
 
   def handle_cast({:add, callback}, job_map) do
-    job = %{id: Enum.count(job_map) + 1, pid: nil}
-    pid = spawn_link fn -> callback.(job) end
+    job = %{id: Enum.count(job_map) + 1, task: nil}
+    task = Task.async(fn -> callback.(job) end)
 
-    {:noreply, Map.put(job_map, job.id, %{job | pid: pid})}
+    {:noreply, Map.put(job_map, job.id, %{job | task: task})}
   end
 
   def handle_cast({:update, %{id: id} = data}, job_map) do
@@ -22,6 +22,12 @@ defmodule Frontend.BackgroundJob.Server do
 
   def handle_call(:all, _from, job_map) do
     {:reply, job_map |> Map.values |> Enum.reverse, job_map}
+  end
+
+  def handle_call(:await_all, _from, job_map) do
+    job_map |> Map.values |> Enum.map(&Task.await(&1.task))
+
+    {:reply, :ok, job_map}
   end
 end
 
