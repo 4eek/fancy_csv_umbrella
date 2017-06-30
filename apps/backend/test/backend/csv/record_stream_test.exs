@@ -9,7 +9,7 @@ defmodule Backend.Csv.RecordStreamTest do
 
   test "streams an empty collection when csv has no rows", %{format: format} do
     {:ok, file_handler} = StringIO.open("name,url\n")
-    {:ok, stream} = RecordStream.create(file_handler, format)
+    {:ok, stream} = RecordStream.new(file_handler, format)
 
     assert [] == Enum.to_list(stream)
   end
@@ -21,7 +21,7 @@ defmodule Backend.Csv.RecordStreamTest do
     Natal,http://natal.com.br
     New York,http://newyork.org
     """
-    {:ok, stream} = RecordStream.create(file_handler, format)
+    {:ok, stream} = RecordStream.new(file_handler, format)
 
     assert [
       %City{name: "Madrid", url: "http://madrid.com"},
@@ -37,7 +37,7 @@ defmodule Backend.Csv.RecordStreamTest do
     http://natal.com.br,Natal
     http://newyork.org,New York
     """
-    {:ok, stream} = RecordStream.create(file_handler, format)
+    {:ok, stream} = RecordStream.new(file_handler, format)
 
     assert [
       %City{name: "Madrid", url: "http://madrid.com"},
@@ -53,7 +53,7 @@ defmodule Backend.Csv.RecordStreamTest do
     Natal
     """
 
-    assert :invalid_csv == RecordStream.create(file_handler, format)
+    assert :invalid_csv == RecordStream.new(file_handler, format)
   end
 
   test "returns invalid_csv when one of the columns has wrong name", %{format: format} do
@@ -63,6 +63,6 @@ defmodule Backend.Csv.RecordStreamTest do
     Natal,http://natal.com.br
     """
 
-    assert :invalid_csv == RecordStream.create(file_handler, format)
+    assert :invalid_csv == RecordStream.new(file_handler, format)
   end
 end

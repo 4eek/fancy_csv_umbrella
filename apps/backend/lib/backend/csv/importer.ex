@@ -8,7 +8,7 @@ defmodule Backend.Csv.Importer do
     {:ok, input_device} = File.open(input_path)
 
     input_device
-    |> RecordStream.create(format)
+    |> RecordStream.new(format)
     |> do_import_file(format, output_path, ImportStats.new, on_update)
 
     File.close input_device
