@@ -51,8 +51,8 @@ defmodule Backend.Csv.Importer do
   end
 
   defp sum_stats(stats, {result, _}, on_update) do
-    stats
-    |> Csv.ImportStats.update(result)
-    |> on_update.()
+    new_stats = stats |> Csv.ImportStats.update(result)
+    new_stats |> on_update.()
+    new_stats
   end
 end

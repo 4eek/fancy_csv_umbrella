@@ -19,6 +19,7 @@ defmodule Backend.Csv.ImporterTest do
 
     Csv.Importer.call input_path, output_path, format, fn(stats) ->
       send self(), stats
+      nil
     end
 
     assert [
