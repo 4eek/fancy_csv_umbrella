@@ -1,4 +1,4 @@
-defmodule Backend.Csv.ImportOutput do
+defmodule Backend.Csv.Import.Output do
   alias Ecto.Changeset
   alias Backend.Csv
 

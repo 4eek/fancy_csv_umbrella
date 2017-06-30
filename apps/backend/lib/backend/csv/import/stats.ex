@@ -1,4 +1,4 @@
-defmodule Backend.Csv.ImportStats do
+defmodule Backend.Csv.Import.Stats do
   defstruct ok: 0, error: 0, message: ""
 
   def new, do: %__MODULE__{}

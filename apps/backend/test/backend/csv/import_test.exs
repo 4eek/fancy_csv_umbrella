@@ -1,4 +1,4 @@
-defmodule Backend.Csv.ImporterTest do
+defmodule Backend.Csv.ImportTest do
   use DbCase
   alias Backend.{Csv, City}
 
@@ -17,7 +17,7 @@ defmodule Backend.Csv.ImporterTest do
     ,http://invalid2.com,name can't be blank
     """
 
-    Csv.Importer.call input_path, output_path, format, fn(stats) ->
+    Csv.Import.call input_path, output_path, format, fn(stats) ->
       send self(), stats
       nil
     end
@@ -37,7 +37,7 @@ defmodule Backend.Csv.ImporterTest do
   test "yields error when csv has invalid headers", %{output_path: output_path, format: format} do
     input_path = Fixture.path("invalid_cities.csv")
 
-    Csv.Importer.call input_path, output_path, format, fn(stats) ->
+    Csv.Import.call input_path, output_path, format, fn(stats) ->
       send self(), stats
     end
 
