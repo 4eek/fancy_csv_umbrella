@@ -1,8 +1,8 @@
-defmodule Frontend.JobTracker do
+defmodule Frontend.BackgroundJob do
   @name :job_tracker
 
   def start_link do
-    Frontend.JobTracker.Server.start_link name: @name
+    Frontend.BackgroundJob.Server.start_link name: @name
   end
 
   def add(pid \\ @name, callback) do

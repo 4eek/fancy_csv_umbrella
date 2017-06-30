@@ -1,7 +1,7 @@
 defmodule Frontend.CityImportControllerTest do
   use Frontend.ConnCase
   import Phoenix.ChannelTest, only: [assert_broadcast: 2]
-  alias Frontend.JobTracker
+  alias Frontend.BackgroundJob
   alias Backend.City
 
   test "GET /city_import/new", %{conn: conn} do
@@ -31,7 +31,7 @@ defmodule Frontend.CityImportControllerTest do
 
     Process.sleep(100)
 
-    assert [%{id: 1, ok: 3, error: 0, filename: "cities.csv"}] = JobTracker.all
+    assert [%{id: 1, ok: 3, error: 0, filename: "cities.csv"}] = BackgroundJob.all
 
     assert_broadcast "change", %{error: 0, ok: 1, message: ""}
     assert_broadcast "change", %{error: 0, ok: 2, message: ""}

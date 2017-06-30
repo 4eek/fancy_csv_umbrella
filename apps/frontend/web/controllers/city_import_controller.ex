@@ -2,7 +2,7 @@ defmodule Frontend.CityImportController do
   use Frontend.Web, :controller
 
   def index(conn, _params) do
-    render conn, "index.html", jobs: Frontend.JobTracker.all
+    render conn, "index.html", jobs: Frontend.BackgroundJob.all
   end
 
   def new(conn, _params) do

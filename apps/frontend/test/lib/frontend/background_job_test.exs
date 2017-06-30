@@ -1,16 +1,16 @@
-defmodule Frontend.JobTrackerTest do
+defmodule Frontend.BackgroundJobTest do
   use ExUnit.Case
-  alias Frontend.JobTracker
+  alias Frontend.BackgroundJob
 
   def add_job(pid, callback) do
     self = self()
-    JobTracker.add pid, &callback.(&1, self)
+    BackgroundJob.add pid, &callback.(&1, self)
   end
 
-  defdelegate update_job(pid, data), to: JobTracker, as: :update
+  defdelegate update_job(pid, data), to: BackgroundJob, as: :update
 
   setup do
-    {:ok, pid} = JobTracker.Server.start_link
+    {:ok, pid} = BackgroundJob.Server.start_link
     {:ok, pid: pid}
   end
 
@@ -21,7 +21,7 @@ defmodule Frontend.JobTrackerTest do
     end
 
     assert_receive "job"
-    assert [%{id: 1, pid: pid}] = JobTracker.all(pid)
+    assert [%{id: 1, pid: pid}] = BackgroundJob.all(pid)
     assert is_pid(pid)
   end
 
@@ -38,7 +38,7 @@ defmodule Frontend.JobTrackerTest do
 
     assert_receive "job 1"
     assert_receive "job 2"
-    assert [%{id: 2}, %{id: 1}] = JobTracker.all(pid)
+    assert [%{id: 2}, %{id: 1}] = BackgroundJob.all(pid)
   end
 
   test "updates a job", %{pid: pid} do
@@ -46,6 +46,6 @@ defmodule Frontend.JobTrackerTest do
 
     update_job pid, %{id: 1, data: "random"}
 
-    assert [%{id: 1, data: "random"}] = JobTracker.all(pid)
+    assert [%{id: 1, data: "random"}] = BackgroundJob.all(pid)
   end
 end

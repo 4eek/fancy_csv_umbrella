@@ -1,4 +1,4 @@
-defmodule Frontend.JobTracker.Server do
+defmodule Frontend.BackgroundJob.Server do
   use GenServer
 
   def start_link(opts \\ []) do
