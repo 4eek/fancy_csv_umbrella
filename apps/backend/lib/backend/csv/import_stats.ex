@@ -5,5 +5,5 @@ defmodule Backend.Csv.ImportStats do
 
   def update(stats, :ok), do: %{stats | ok: stats.ok + 1}
   def update(stats, :error), do: %{stats | error: stats.error + 1}
-  def update(stats, message: message), do: Map.merge(stats, %{message: message})
+  def update(stats, message: message), do: %{stats | message: message}
 end
