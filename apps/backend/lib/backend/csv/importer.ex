@@ -1,33 +1,32 @@
 defmodule Backend.Csv.Importer do
-  alias Backend.Csv.{RecordStream, ImportOutput, ImportStats, Format}
-  alias Backend.SaveRecord
+  alias Backend.{Csv, SaveRecord}
 
   @max_concurrency 10
 
-  def call(input_path, output_path, format = %Format{}, on_update) do
+  def call(input_path, output_path, format = %Csv.Format{}, on_update) do
     {:ok, input_device} = File.open(input_path)
 
     input_device
-    |> RecordStream.new(format)
-    |> do_import_file(format, output_path, ImportStats.new, on_update)
+    |> Csv.RecordStream.new(format)
+    |> do_import_file(format, output_path, Csv.ImportStats.new, on_update)
 
     File.close input_device
   end
 
   defp do_import_file({:ok, stream}, format, output_path, stats, on_update) do
-    {:ok, output} = ImportOutput.new(output_path, format.headers)
+    {:ok, output} = Csv.ImportOutput.new(output_path, format.headers)
 
     stream
     |> importable_record_stream
     |> writeable_output_stream(output)
     |> kick_off_and_sum_stats(stats, on_update)
 
-    ImportOutput.close output
+    Csv.ImportOutput.close output
   end
 
   defp do_import_file(:invalid_csv, _, _, stats, on_update) do
     stats
-    |> ImportStats.update(message: "Invalid CSV headers")
+    |> Csv.ImportStats.update(message: "Invalid CSV headers")
     |> on_update.()
   end
 
@@ -43,7 +42,7 @@ defmodule Backend.Csv.Importer do
   end
 
   defp add_output_row(changeset, output) do
-    ImportOutput.add_row output, changeset
+    Csv.ImportOutput.add_row output, changeset
     changeset
   end
 
@@ -53,7 +52,7 @@ defmodule Backend.Csv.Importer do
 
   defp sum_stats(stats, {result, _}, on_update) do
     stats
-    |> ImportStats.update(result)
+    |> Csv.ImportStats.update(result)
     |> on_update.()
   end
 end
