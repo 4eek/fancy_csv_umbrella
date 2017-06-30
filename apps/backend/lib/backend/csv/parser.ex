@@ -1,1 +1,1 @@
-NimbleCSV.define(Backend.Csv.Parser, separator: ",", escape: "\"")
+NimbleCSV.define Backend.Csv.Parser, separator: ",", escape: "\""

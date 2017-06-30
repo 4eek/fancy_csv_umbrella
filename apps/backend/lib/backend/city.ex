@@ -6,6 +6,8 @@ defmodule Backend.City do
     field :url, :string
   end
 
+  def all, do: ordered() |> Backend.Repo.all
+
   def ordered do
     import Ecto.Query
 

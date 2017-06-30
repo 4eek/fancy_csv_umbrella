@@ -7,21 +7,21 @@ defmodule Backend.Csv.RecordStreamTest do
     {:ok, format: %Format{headers: ~w(name url)a, type: City}}
   end
 
-  test "streams an empty collection when csv has no rows", %{format: format} do
-    {:ok, file_handler} = StringIO.open("name,url\n")
-    {:ok, stream} = RecordStream.new(file_handler, format)
+  test "streams nothing when csv has no rows", %{format: format} do
+    {:ok, device} = StringIO.open("name,url\n")
+    {:ok, stream} = RecordStream.new(device, format)
 
     assert [] == Enum.to_list(stream)
   end
 
-  test "streams records from a csv file", %{format: format} do
-    {:ok, file_handler} = StringIO.open """
+  test "converts csv records to structs and streams them", %{format: format} do
+    {:ok, device} = StringIO.open """
     name,url
     Madrid,http://madrid.com
     Natal,http://natal.com.br
     New York,http://newyork.org
     """
-    {:ok, stream} = RecordStream.new(file_handler, format)
+    {:ok, stream} = RecordStream.new(device, format)
 
     assert [
       %City{name: "Madrid", url: "http://madrid.com"},
@@ -30,14 +30,14 @@ defmodule Backend.Csv.RecordStreamTest do
     ] = Enum.to_list(stream)
   end
 
-  test "streams the right contents when headers are switched out", %{format: format} do
-    {:ok, file_handler} = StringIO.open """
+  test "streams correctly when headers are swapped out", %{format: format} do
+    {:ok, device} = StringIO.open """
     url,name
     http://madrid.com,Madrid
     http://natal.com.br,Natal
     http://newyork.org,New York
     """
-    {:ok, stream} = RecordStream.new(file_handler, format)
+    {:ok, stream} = RecordStream.new(device, format)
 
     assert [
       %City{name: "Madrid", url: "http://madrid.com"},
@@ -46,23 +46,23 @@ defmodule Backend.Csv.RecordStreamTest do
     ] = Enum.to_list(stream)
   end
 
-  test "returns invalid_csv when one of the columns is missing", %{format: format} do
-    {:ok, file_handler} = StringIO.open """
+  test "returns invalid_csv when missing a required column", %{format: format} do
+    {:ok, device} = StringIO.open """
     name
     Madrid
     Natal
     """
 
-    assert :invalid_csv == RecordStream.new(file_handler, format)
+    assert :invalid_csv == RecordStream.new(device, format)
   end
 
-  test "returns invalid_csv when one of the columns has wrong name", %{format: format} do
-    {:ok, file_handler} = StringIO.open """
+  test "returns invalid_csv when column has wrong name", %{format: format} do
+    {:ok, device} = StringIO.open """
     name,urls
     Madrid,http://madrid.com
     Natal,http://natal.com.br
     """
 
-    assert :invalid_csv == RecordStream.new(file_handler, format)
+    assert :invalid_csv == RecordStream.new(device, format)
   end
 end
