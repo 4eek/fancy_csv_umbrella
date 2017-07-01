@@ -4,28 +4,25 @@ defmodule Backend.Csv.Import do
   @max_concurrency 10
 
   def call(input_path, output_path, format = %Csv.Format{}, on_update) do
-    {:ok, input_device} = File.open(input_path)
-
-    input_device
-    |> Csv.RecordStream.new(format)
-    |> do_import_file(format, output_path, Csv.Import.Stats.new, on_update)
-
-    File.close input_device
+    File.open input_path, fn(input_device) ->
+      case Csv.RecordStream.new(input_device, format) do
+        {:ok, stream} -> import(stream, format, output_path, on_update)
+        :invalid_csv -> abort(on_update)
+      end
+    end
   end
 
-  defp do_import_file({:ok, stream}, format, output_path, stats, on_update) do
-    {:ok, output} = Csv.Import.Output.new(output_path, format.headers)
-
-    stream
-    |> importable_record_stream
-    |> writeable_output_stream(output)
-    |> kick_off_and_sum_stats(stats, on_update)
-
-    Csv.Import.Output.close output
+  defp import(stream, format, output_path, on_update) do
+    Csv.Import.Output.open output_path, format.headers, fn(output_state) ->
+      stream
+      |> importable_record_stream
+      |> writeable_output_stream(output_state)
+      |> kick_off_and_sum_stats(on_update)
+    end
   end
 
-  defp do_import_file(:invalid_csv, _, _, stats, on_update) do
-    stats
+  defp abort(on_update) do
+    Csv.Import.Stats.new
     |> Csv.Import.Stats.update(message: "Invalid CSV headers")
     |> on_update.()
   end
@@ -36,18 +33,18 @@ defmodule Backend.Csv.Import do
     |> Stream.map(fn({:ok, changeset}) -> changeset end)
   end
 
-  defp writeable_output_stream(stream, output) do
+  defp writeable_output_stream(stream, output_state) do
     stream
-    |> Stream.map(&add_output_row(&1, output))
+    |> Stream.map(&add_output_row(&1, output_state))
   end
 
-  defp add_output_row(changeset, output) do
-    Csv.Import.Output.add_row output, changeset
+  defp add_output_row(changeset, output_state) do
+    Csv.Import.Output.add_row output_state, changeset
     changeset
   end
 
-  defp kick_off_and_sum_stats(changeset, stats, on_update) do
-    Enum.reduce(changeset, stats, &sum_stats(&2, &1, on_update))
+  defp kick_off_and_sum_stats(changeset, on_update) do
+    Enum.reduce(changeset, Csv.Import.Stats.new, &sum_stats(&2, &1, on_update))
   end
 
   defp sum_stats(stats, {result, _}, on_update) do

@@ -2,49 +2,60 @@ defmodule Backend.Csv.Import.OutputTest do
   use ExUnit.Case
   alias Backend.{City, Csv} 
 
-  @headers ~w(name url)a
-
-  defp read_device({device, _}), do: TestHelper.read_stringio(device)
+  def changeset(map), do: struct(City, map) |> City.changeset
+  def contents({:ok, {_, contents}}), do: contents
 
   test "creates a new output csv" do
-    {:ok, state} = Csv.Import.Output.new("", @headers, StringIO)
+    output = Csv.Import.Output.open("", ~w(name url)a, fn(_) ->
+      nil
+    end, StringIO)
 
-    assert "name,url,errors\n" = read_device(state)
+    assert "name,url,errors\n" == contents(output)
   end
 
-  test "appends an invalid record to the output file" do
-    {:ok, state} = Csv.Import.Output.new("", @headers, StringIO)
-    changeset = %City{name: nil, url: "http://invalid.com"} |> City.changeset
-    expected_contents = """
+  test "appends an invalid csv row to an output file" do
+    output = Csv.Import.Output.open("", ~w(name url)a, fn(output_state) ->
+      changeset = changeset(%{name: nil, url: "http://i.com"})
+      Csv.Import.Output.add_row output_state, {:error, changeset}
+    end, StringIO)
+    
+    assert """
     name,url,errors
-    ,http://invalid.com,name can't be blank
-    """
-
-    Csv.Import.Output.add_row(state, {:error, changeset})
-
-    assert expected_contents == read_device(state)
+    ,http://i.com,name can't be blank
+    """ == contents(output)
   end
 
-  test "appends correctly when has more than one validation error" do
-    {:ok, state} = Csv.Import.Output.new("", @headers, StringIO)
-    changeset = %City{name: nil, url: nil} |> City.changeset
-    expected_contents = """
+  test "writes changeset fields in the output file by header order" do
+    output = Csv.Import.Output.open("", ~w(url name)a, fn(output_state) ->
+      changeset = changeset(%{name: nil, url: "http://i.com"})
+      Csv.Import.Output.add_row output_state, {:error, changeset}
+    end, StringIO)
+
+    assert """
+    url,name,errors
+    http://i.com,,name can't be blank
+    """ == contents(output)
+  end
+
+  test "appends validation errors to output file correctly" do
+    output = Csv.Import.Output.open("", ~w(name url)a, fn(output_state) ->
+      changeset = changeset(%{name: nil, url: nil})
+      Csv.Import.Output.add_row output_state, {:error, changeset}
+    end, StringIO)
+
+    assert """
     name,url,errors
     ,,"name can't be blank, url can't be blank"
-    """
-
-    Csv.Import.Output.add_row(state, {:error, changeset})
-
-    assert expected_contents == read_device(state)
+    """ == contents(output)
   end
 
-  test "does not append to output file when record is valid" do
-    {:ok, state} = Csv.Import.Output.new("", @headers, StringIO)
-    changeset = %City{name: "Town", url: "http://town.com"} |> City.changeset
+  test "does not append a row to output file when changeset is valid" do
+    output = Csv.Import.Output.open("", ~w(name url)a, fn(output_state) ->
+      changeset = changeset(%{name: "Town", url: "http://town.com"})
+      Csv.Import.Output.add_row output_state, {:ok, changeset}
+    end, StringIO)
 
-    Csv.Import.Output.add_row(state, {:ok, changeset})
-
-    assert "name,url,errors\n" = read_device(state)
+    assert "name,url,errors\n" = contents(output)
   end
 
   defmodule FakeIO do
@@ -52,8 +63,10 @@ defmodule Backend.Csv.Import.OutputTest do
   end
 
   test "returns an error when can not open device" do
-    {:error, reason} = Csv.Import.Output.new("", @headers, FakeIO)
+    output = Csv.Import.Output.open("", ~w(name url)a, fn(_) ->
+      nil
+    end, FakeIO)
 
-    assert "failed" == reason
+    assert {:error, "failed"} = output
   end
 end

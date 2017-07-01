@@ -2,11 +2,12 @@ defmodule Backend.Csv.Import.Output do
   alias Ecto.Changeset
   alias Backend.Csv
 
-  def new(path, headers, mod \\ File) do
+  def open(path, headers, callback, mod \\ File) do
     case mod.open(path, [:write]) do
       {:ok, device} ->
         write device, dump_row([headers ++ [:errors]])
-        {:ok, {device, headers}}
+        callback.({device, headers, mod})
+        mod.close(device)
       {:error, message} -> {:error, message}
     end
   end
@@ -14,11 +15,9 @@ defmodule Backend.Csv.Import.Output do
   defp write(device, contents), do: IO.binwrite device, contents
 
   def add_row(_output, {:ok, %{}}), do: nil
-  def add_row({device, headers}, {:error, %Changeset{} = changeset}) do
+  def add_row({device, headers, _}, {:error, %Changeset{} = changeset}) do
     write device, dump_row(changeset, headers)
   end
-
-  def close({device, _}), do: File.close(device)
 
   defp dump_row(%Changeset{} = changeset, headers) do
     changeset
