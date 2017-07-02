@@ -2,49 +2,42 @@ defmodule Frontend.BackgroundJobTest do
   use ExUnit.Case
   alias Frontend.BackgroundJob
 
-  def add_job(pid, callback) do
-    self = self()
-    BackgroundJob.add pid, &callback.(&1, self)
-  end
-
-  defdelegate update_job(pid, data), to: BackgroundJob, as: :update
-
   setup do
+    Process.register self(), :test
+
     {:ok, pid} = BackgroundJob.Server.start_link
     {:ok, pid: pid}
   end
 
   test "registers one job", %{pid: pid} do
-    add_job pid, fn(job_data, self) ->
+    BackgroundJob.add pid, fn(job_data) ->
       assert %{id: 1} = job_data
-      send self, "job"
+      send :test, {:message, "job"}
     end
 
-    assert_receive "job"
-    assert [%{id: 1, task: task}] = BackgroundJob.all(pid)
-    assert %Task{} = task
+    assert_receive {:message, "job"}
+    assert [%{id: 1}] = BackgroundJob.all(pid)
   end
 
   test "registers two jobs", %{pid: pid} do
-    add_job pid, fn(job_data, self) ->
+    BackgroundJob.add pid, fn(job_data) ->
       assert %{id: 1} = job_data
-      send self, "job 1"
+      send :test, {:message, "job 1"}
     end
 
-    add_job pid, fn(job_data, self) ->
+    BackgroundJob.add pid, fn(job_data) ->
       assert %{id: 2} = job_data
-      send self, "job 2"
+      send :test, {:message, "job 2"}
     end
 
-    assert_receive "job 1"
-    assert_receive "job 2"
+    assert_receive {:message, "job 1"}
+    assert_receive {:message, "job 2"}
     assert [%{id: 2}, %{id: 1}] = BackgroundJob.all(pid)
   end
 
   test "updates a job", %{pid: pid} do
-    add_job pid, fn(_, _) -> nil end
-
-    update_job pid, %{id: 1, data: "random"}
+    BackgroundJob.add pid, fn(_) -> nil end
+    BackgroundJob.update pid, %{id: 1, data: "random"}
 
     assert [%{id: 1, data: "random"}] = BackgroundJob.all(pid)
   end

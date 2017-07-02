@@ -29,5 +29,11 @@ defmodule Frontend.BackgroundJob.Server do
 
     {:reply, :ok, job_map}
   end
+
+  def handle_info({ref, _task_result}, job_map) do
+    Process.demonitor ref, [:flush]
+
+    {:noreply, job_map}
+  end
 end
 
