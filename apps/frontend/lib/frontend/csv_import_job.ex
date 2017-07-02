@@ -11,7 +11,7 @@ defmodule Frontend.CityCsvJob do
 
     BackgroundJob.add fn %{id: id} ->
       BackgroundJob.update(%{id: id, filename: filename})
-      Csv.Importer.call(input_path, output_path, @format, &broadcast(id, &1))
+      Csv.Import.call(input_path, output_path, @format, &broadcast(id, &1))
     end
   end
 
