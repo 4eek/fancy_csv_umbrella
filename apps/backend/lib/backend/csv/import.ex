@@ -4,7 +4,7 @@ defmodule Backend.Csv.Import do
   @max_concurrency 10
 
   def call(input_path, output_path, format = %Csv.Format{}, on_update) do
-    File.open input_path, fn(input_device) ->
+    {:ok, _} = File.open input_path, fn(input_device) ->
       case Csv.RecordStream.new(input_device, format) do
         {:ok, stream} -> import(stream, format, output_path, on_update)
         :invalid_csv -> abort(on_update)
@@ -13,7 +13,7 @@ defmodule Backend.Csv.Import do
   end
 
   defp import(stream, format, output_path, on_update) do
-    Csv.Import.Output.open output_path, format.headers, fn(output_state) ->
+    {:ok, _} = Csv.Import.Output.open output_path, format.headers, fn(output_state) ->
       stream
       |> importable_record_stream
       |> writeable_output_stream(output_state)
