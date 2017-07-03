@@ -5,9 +5,12 @@ defmodule Backend.Csv.Import.Output do
   def open(path, headers, callback, mod \\ File) do
     case mod.open(path, [:write]) do
       {:ok, device} ->
-        write device, dump_row([headers ++ [:errors]])
-        callback.({device, headers, mod})
-        mod.close(device)
+        try do
+          write device, dump_row([headers ++ [:errors]])
+          {:ok, callback.({device, headers, mod})}
+        after
+          mod.close(device)
+        end
       {:error, message} -> {:error, message}
     end
   end
