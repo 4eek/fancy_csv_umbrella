@@ -2,96 +2,98 @@ defmodule Backend.Csv.Import.OutputTest do
   use ExUnit.Case
   alias Backend.{City, Csv} 
 
-  defmodule FileMock do
-    def start_link(path, return_value \\ nil) do
-      {:ok, device} = StringIO.open("")
-      Agent.start_link(fn -> {path, device, return_value} end, name: __MODULE__)
-    end
-
-    def open(path, [:write]) do
-      {^path, device, return_value} = state()
-      return_value || {:ok, device}
-    end
-
-    def close(pid), do: StringIO.close(pid)
-    def device, do: elem(state(), 1)
-    def state, do: Agent.get(__MODULE__, &(&1))
-    def contents do
-      {_, contents} = StringIO.contents(device())
-      contents
-    end
+  defmodule GoodIO do
+    def open(device, [:write]), do: {:ok, device}
+    def close(device), do: send(self(), {:closed_mock, device})
   end
 
   def changeset(map), do: struct(City, map) |> City.changeset
-  def open_output(path, headers, callback) do
-    FileMock.start_link path
-
-    {:ok, _} = Csv.Import.Output.open path, headers, fn(output_state) ->
-      send self(), "callback executed"
-      callback.(output_state)
-    end, FileMock
-
-    assert_receive "callback executed"
-    refute Process.alive?(FileMock.device)
+  def assert_device_closes(device), do: assert_receive {:closed_mock, ^device}
+  def assert_file_contents(device, expected_contents) do
+    {:ok, {_, contents}} = StringIO.close(device)
+    assert expected_contents == contents
   end
 
-  test "creates a new output csv" do
-    open_output "fake_path.csv", ~w(name url)a, fn(_) ->
-      assert "name,url,errors\n" == FileMock.contents
-    end
+  test "creates a new output csv with just the given headers" do
+    {:ok, device} = StringIO.open("")
+
+    Csv.Import.Output.open(device, ~w(name url)a, fn(_) -> nil end, GoodIO)
+
+    assert_file_contents device, "name,url,errors\n"
   end
 
-  test "appends an invalid csv row to an output file" do
-    open_output "fake_path.csv", ~w(name url)a, fn(output_state) ->
-      changeset = changeset(%{name: nil, url: "http://i.com"})
-      Csv.Import.Output.add_row output_state, {:error, changeset}
+  test "appends an invalid csv row after the headers" do
+    {:ok, device} = StringIO.open("")
 
-      assert """
-      name,url,errors
-      ,http://i.com,name can't be blank
-      """ == FileMock.contents
-    end
+    Csv.Import.Output.open(device, ~w(name url)a, fn(output_state) ->
+      Csv.Import.Output.add_row output_state, {:error, changeset(%{
+        name: nil,
+        url: "http://i.com"
+      })}
+    end, GoodIO)
+
+    assert_file_contents device, """
+    name,url,errors
+    ,http://i.com,name can't be blank
+    """
   end
 
-  test "writes changeset fields in the output file by header order" do
-    open_output "fake_path.csv", ~w(url name)a, fn(output_state) ->
-      changeset = changeset(%{name: nil, url: "http://i.com"})
-      Csv.Import.Output.add_row output_state, {:error, changeset}
+  test "considers given header order when writing invalid csv row" do
+    {:ok, device} = StringIO.open("")
 
-      assert """
-      url,name,errors
-      http://i.com,,name can't be blank
-      """ == FileMock.contents
-    end
+    Csv.Import.Output.open(device, ~w(url name)a, fn(output_state) ->
+      Csv.Import.Output.add_row output_state, {:error, changeset(%{
+        name: nil,
+        url: "http://i.com"
+      })}
+    end, GoodIO)
+
+    assert_file_contents device, """
+    url,name,errors
+    http://i.com,,name can't be blank
+    """
+    assert_device_closes device
   end
 
-  test "appends validation errors to output file correctly" do
-    open_output "fake_path.csv", ~w(name url)a, fn(output_state) ->
-      changeset = changeset(%{name: nil, url: nil})
-      Csv.Import.Output.add_row output_state, {:error, changeset}
+  test "gathers validation errors correctly" do
+    {:ok, device} = StringIO.open("")
 
-      assert """
-      name,url,errors
-      ,,"name can't be blank, url can't be blank"
-      """ == FileMock.contents
-    end
+    Csv.Import.Output.open(device, ~w(name url)a, fn(output_state) ->
+      Csv.Import.Output.add_row output_state, {:error, changeset(%{
+        name: nil,
+        url: nil
+      })}
+    end, GoodIO)
+
+    assert_file_contents device, """
+    name,url,errors
+    ,,"name can't be blank, url can't be blank"
+    """
+    assert_device_closes device
   end
 
-  test "does not append a row to output file when changeset is valid" do
-    open_output "fake_path.csv", ~w(name url)a, fn(output_state) ->
-      changeset = changeset(%{name: "Town", url: "http://town.com"})
-      Csv.Import.Output.add_row output_state, {:ok, changeset}
+  test "does not append valid changeset fields" do
+    {:ok, device} = StringIO.open("")
 
-      assert "name,url,errors\n" = FileMock.contents
-    end
+    Csv.Import.Output.open(device, ~w(name url)a, fn(output_state) ->
+      Csv.Import.Output.add_row output_state, {:ok, changeset(%{
+        name: "Town",
+        url: "http://town.com"
+      })}
+    end, GoodIO)
+
+    assert_file_contents device, "name,url,errors\n"
+    assert_device_closes device
   end
 
-  test "returns an error when can not open device" do
-    FileMock.start_link "fake_path.csv", {:error, "failed"}
+  defmodule BadIO do
+    def open("path.csv", [:write]), do: {:error, "failed"}
+  end
 
-    output = Csv.Import.Output.open "fake_path.csv", ~w(name url)a, fn(_) ->
+  test "returns an error when open method returns error" do
+    output = Csv.Import.Output.open "path.csv", ~w(name url)a, fn(_) ->
       nil
-    end, FileMock
+    end, BadIO
 
     assert {:error, "failed"} = output
   end
