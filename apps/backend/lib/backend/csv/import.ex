@@ -17,7 +17,7 @@ defmodule Backend.Csv.Import do
       stream
       |> importable_record_stream
       |> writeable_output_stream(output_state)
-      |> kick_off_and_sum_stats(on_update)
+      |> kick_off_and_sum_stats(on_update, output_path)
     end
   end
 
@@ -43,8 +43,10 @@ defmodule Backend.Csv.Import do
     changeset
   end
 
-  defp kick_off_and_sum_stats(changeset, on_update) do
+  defp kick_off_and_sum_stats(changeset, on_update, output_path) do
     Enum.reduce(changeset, Csv.Import.Stats.new, &sum_stats(&2, &1, on_update))
+    |> Csv.Import.Stats.update(output: output_path)
+    |> on_update.()
   end
 
   defp sum_stats(stats, {result, _}, on_update) do
