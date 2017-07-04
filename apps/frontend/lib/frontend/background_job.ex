@@ -1,5 +1,5 @@
 defmodule Frontend.BackgroundJob do
-  @name :job_tracker
+  @name :background_job
 
   def start_link do
     Frontend.BackgroundJob.Server.start_link name: @name
