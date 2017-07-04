@@ -43,6 +43,8 @@ defmodule Frontend.Web do
       # Use all HTML functionality (forms, tags, etc)
       use Phoenix.HTML
 
+      alias Frontend.Endpoint
+
       import Frontend.Router.Helpers
       import Frontend.ErrorHelpers
       import Frontend.Gettext

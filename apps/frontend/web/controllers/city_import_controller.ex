@@ -5,6 +5,13 @@ defmodule Frontend.CityImportController do
     render conn, "index.html", jobs: Frontend.BackgroundJob.all
   end
 
+  def show(conn, %{"id" => id}) do
+    id = String.to_integer(id)
+    job = Enum.find Frontend.BackgroundJob.all, &(&1.id == id)
+
+    render put_layout(conn, false), "show.html", job: job
+  end
+
   def new(conn, _params) do
     render conn, "new.html"
   end

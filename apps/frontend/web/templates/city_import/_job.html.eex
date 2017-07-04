@@ -1,0 +1,13 @@
+<tr class="job-<%= @job.id %>">
+  <td><%= @job.id %></td>
+  <td><%= @job.filename %></td>
+  <td class="ok"><%= @job.ok %></td>
+  <td class="error"><%= @job.error %></td>
+  <td class="output">
+    <%= if @job.output do %>
+      <a href="<%= static_path(@conn, @job.output) %>">Download</a>
+    <% else %>
+      -
+    <% end %>
+  </td>
+<tr>

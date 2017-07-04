@@ -59,15 +59,53 @@ channel.join()
   .receive("ok", resp => { console.log("Joined successfully", resp) })
   .receive("error", resp => { console.log("Unable to join", resp) })
 
-const enabled = document.querySelector('#jobs-table')
+const broadcastImportStatus = document.querySelector('#jobs-table')
+const fetchedJobs = []
 
-channel.on("change", data => {
-  if (!enabled) { return }
+function fetchJobHtml(id, callback) {
+  fetchedJobs.push(id)
 
-  let job = document.querySelector(`.job-${data.id}`)
+  const xhr = new XMLHttpRequest()
+  xhr.open('GET', `city_import/${id}`)
 
-  job.querySelector('.ok').innerHTML = data.ok
-  job.querySelector('.error').innerHTML = data.error
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      callback(xhr.responseText)
+    }
+  }
+
+  xhr.send()
+}
+
+function updateJobData(job, data) {
+  if (job) {
+    job.querySelector('.ok').innerHTML = data.ok
+    job.querySelector('.error').innerHTML = data.error
+
+    if (data.output) {
+      job.querySelector('.output').innerHTML = `<a href="${data.output}">Download</a>`
+    }
+  }
+}
+
+channel.on("change", (data) => {
+  if (!broadcastImportStatus) { return }
+
+  let job = document
+    .getElementById('jobs-table')
+    .querySelector(`.job-${data.id}`)
+
+  if (!job && !fetchedJobs.includes(data.id)) {
+    fetchJobHtml(data.id, (contents) => {
+      document
+        .getElementById('jobs-table')
+        .querySelector('.header')
+        .insertAdjacentHTML('afterend', contents)
+    })
+  }
+  else {
+    updateJobData(job, data)
+  }
 })
 
 export default socket
