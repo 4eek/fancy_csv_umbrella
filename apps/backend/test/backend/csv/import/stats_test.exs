@@ -36,4 +36,16 @@ defmodule Backend.Csv.Import.StatsTest do
     assert %Import.Stats{ok: 0, error: 0, message: "Error"} == new()
     |> update(message: "Error")
   end
+
+  test "updates with the output path" do
+    assert %Import.Stats{ok: 0, error: 0, output: "/file.csv"} == new()
+    |> update(output: "/file.csv")
+  end
+
+  test "does not update with invalid state" do
+    assert_raise FunctionClauseError, fn ->
+      %Import.Stats{ok: 0, error: 0, output: "/file.csv"} == new()
+      |> update(invalid: "invalid")
+    end
+  end
 end

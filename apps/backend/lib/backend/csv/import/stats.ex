@@ -1,5 +1,5 @@
 defmodule Backend.Csv.Import.Stats do
-  defstruct ok: 0, error: 0, output: "", message: ""
+  defstruct ok: 0, error: 0, output: nil, message: nil
 
   def new, do: %__MODULE__{}
 
