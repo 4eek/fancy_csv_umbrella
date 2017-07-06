@@ -39,9 +39,9 @@ defmodule Frontend.CityImportControllerTest do
 
     assert [%{id: 1, ok: 3, error: 0, filename: "cities.csv"}] = BackgroundJob.all
 
-    assert_broadcast "change", %{error: 0, ok: 1, message: ""}
-    assert_broadcast "change", %{error: 0, ok: 2, message: ""}
-    assert_broadcast "change", %{error: 0, ok: 3, message: ""}
+    assert_broadcast "change", %{error: 0, ok: 1, message: nil}
+    assert_broadcast "change", %{error: 0, ok: 2, message: nil}
+    assert_broadcast "change", %{error: 0, ok: 3, message: nil}
 
     assert redirected_to(conn) == city_import_path(@endpoint, :index)
     assert ["Madrid", "Natal", "New York"] == Enum.map(City.all, &(&1.name))
