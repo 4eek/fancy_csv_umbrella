@@ -5,8 +5,8 @@ defmodule Frontend.BackgroundJob do
     Frontend.BackgroundJob.Server.start_link name: @name
   end
 
-  def add(pid \\ @name, callback) do
-    GenServer.cast(pid, {:add, callback})
+  def add(pid \\ @name, initial_state, callback) do
+    GenServer.cast(pid, {:add, initial_state, callback})
   end
 
   def all(pid \\ @name) do
@@ -17,7 +17,7 @@ defmodule Frontend.BackgroundJob do
     GenServer.call(pid, :await_all)
   end
 
-  def update(pid \\ @name, data) do
-    GenServer.cast(pid, {:update, data})
+  def update(pid \\ @name, id, data) do
+    GenServer.cast(pid, {:update, id, data})
   end
 end

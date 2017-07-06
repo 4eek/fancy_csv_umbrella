@@ -2,6 +2,8 @@ defmodule Frontend.CityCsvJob do
   alias Frontend.{BackgroundJob, Endpoint, ImportPath}
   alias Backend.{Csv, City}
 
+  defstruct ~w(id filename ok error output message)a
+
   @upload_base "priv/static"
   @format %Csv.Format{headers: ~w(name url)a, type: City}
 
@@ -11,21 +13,18 @@ defmodule Frontend.CityCsvJob do
     File.mkdir_p Path.dirname(input_path)
     File.cp source_path, input_path
 
-    add_job filename, input_path, output_path
+    add_job %__MODULE__{filename: filename}, input_path, output_path
   end
 
-  defp add_job(filename, input_path, output_path) do
-    BackgroundJob.add fn %{id: id} ->
-      BackgroundJob.update %{id: id, filename: filename}
-      Csv.Import.call input_path, output_path, @format, &broadcast(id, &1)
+  defp add_job(initial_stats, input_path, output_path) do
+    BackgroundJob.add initial_stats, fn(job_id) ->
+      Csv.Import.call input_path, output_path, @format, fn(job_stats) ->
+        stats = job_stats |> filter
+
+        BackgroundJob.update job_id, Map.delete(stats, :__struct__)
+        Endpoint.broadcast("city_import:status", "change", stats)
+      end
     end
-  end
-
-  defp broadcast(id, status) do
-    data = status |> Map.merge(%{id: id}) |> filter
-
-    BackgroundJob.update data
-    Endpoint.broadcast("city_import:status", "change", data)
   end
 
   defp filter(%{output: @upload_base <> output} = data), do: %{data | output: output}

@@ -1,6 +1,8 @@
 defmodule Frontend.BackgroundJob.Server do
   use GenServer
 
+  defstruct ~w(id task data)a
+
   def start_link(opts \\ []) do
     GenServer.start_link __MODULE__, [], opts
   end
@@ -9,15 +11,16 @@ defmodule Frontend.BackgroundJob.Server do
     {:ok, %{}}
   end
 
-  def handle_cast({:add, callback}, job_map) do
-    job = %{id: Enum.count(job_map) + 1, task: nil}
-    task = Task.async(fn -> callback.(job) end)
+  def handle_cast({:add, initial_data, callback}, job_map) do
+    job = %__MODULE__{id: Enum.count(job_map) + 1, data: initial_data}
+    task = Task.async(fn -> callback.(job.id) end)
 
     {:noreply, Map.put(job_map, job.id, %{job | task: task})}
   end
 
-  def handle_cast({:update, %{id: id} = data}, job_map) do
-    {:noreply, %{job_map | id => Map.merge(job_map[id], data)}}
+  def handle_cast({:update, id, data}, job_map) do
+    job = Map.fetch!(job_map, id)
+    {:noreply, %{job_map | id => %{job | data: Map.merge(job.data, data)}}}
   end
 
   def handle_call(:all, _from, job_map) do

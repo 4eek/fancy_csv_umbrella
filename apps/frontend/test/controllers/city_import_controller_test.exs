@@ -23,7 +23,7 @@ defmodule Frontend.CityImportControllerTest do
   end
 
   test "POST /city_import", %{conn: conn} do
-    @endpoint.subscribe("city_import:status")
+    @endpoint.subscribe "city_import:status"
 
     conn = post conn, "/city_import", %{
       city_import: %{
@@ -37,11 +37,14 @@ defmodule Frontend.CityImportControllerTest do
 
     :ok = BackgroundJob.await_all
 
-    assert [%{id: 1, ok: 3, error: 0, filename: "cities.csv"}] = BackgroundJob.all
+    assert [
+      %{id: 1, data: %{ok: 3, error: 0, filename: "cities.csv"}}
+    ] = BackgroundJob.all
 
-    assert_broadcast "change", %{error: 0, ok: 1, message: nil}
-    assert_broadcast "change", %{error: 0, ok: 2, message: nil}
-    assert_broadcast "change", %{error: 0, ok: 3, message: nil}
+    assert_broadcast "change", %{error: 0, ok: 1, message: nil, output: nil}
+    assert_broadcast "change", %{error: 0, ok: 2, message: nil, output: nil}
+    assert_broadcast "change", %{error: 0, ok: 3, message: nil, output: nil}
+    assert_broadcast "change", %{error: 0, ok: 3, message: nil, output: "/files/cities" <> _rest}
 
     assert redirected_to(conn) == city_import_path(@endpoint, :index)
     assert ["Madrid", "Natal", "New York"] == Enum.map(City.all, &(&1.name))
