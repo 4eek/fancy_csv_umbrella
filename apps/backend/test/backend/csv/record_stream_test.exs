@@ -1,15 +1,14 @@
 defmodule Backend.Csv.RecordStreamTest do
   use ExUnit.Case
-  alias Backend.City
-  alias Backend.Csv.{RecordStream, Format}
+  alias Backend.{Csv, City}
 
   setup do
-    {:ok, format: %Format{headers: ~w(name url)a, type: City}}
+    {:ok, format: %Csv.Format{headers: ~w(name url)a, type: City}}
   end
 
   test "streams nothing when csv has no rows", %{format: format} do
     {:ok, device} = StringIO.open("name,url\n")
-    {:ok, stream} = RecordStream.new(device, format)
+    {:ok, stream} = Csv.RecordStream.new(device, format)
 
     assert [] == Enum.to_list(stream)
   end
@@ -21,7 +20,7 @@ defmodule Backend.Csv.RecordStreamTest do
     Natal,http://natal.com.br
     New York,http://newyork.org
     """
-    {:ok, stream} = RecordStream.new(device, format)
+    {:ok, stream} = Csv.RecordStream.new(device, format)
 
     assert [
       %City{name: "Madrid", url: "http://madrid.com"},
@@ -37,7 +36,7 @@ defmodule Backend.Csv.RecordStreamTest do
     http://natal.com.br,Natal
     http://newyork.org,New York
     """
-    {:ok, stream} = RecordStream.new(device, format)
+    {:ok, stream} = Csv.RecordStream.new(device, format)
 
     assert [
       %City{name: "Madrid", url: "http://madrid.com"},
@@ -53,7 +52,7 @@ defmodule Backend.Csv.RecordStreamTest do
     Natal
     """
 
-    assert :invalid_csv == RecordStream.new(device, format)
+    assert :invalid_csv == Csv.RecordStream.new(device, format)
   end
 
   test "returns invalid_csv when column has wrong name", %{format: format} do
@@ -63,6 +62,6 @@ defmodule Backend.Csv.RecordStreamTest do
     Natal,http://natal.com.br
     """
 
-    assert :invalid_csv == RecordStream.new(device, format)
+    assert :invalid_csv == Csv.RecordStream.new(device, format)
   end
 end

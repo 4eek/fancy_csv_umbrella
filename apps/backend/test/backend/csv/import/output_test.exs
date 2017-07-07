@@ -2,16 +2,16 @@ defmodule Backend.Csv.Import.OutputTest do
   use ExUnit.Case
   alias Backend.{City, Csv} 
 
-  defmodule GoodIO do
-    def open(device, [:write]), do: {:ok, device}
-    def close(device), do: send(self(), {:closed_mock, device})
-  end
-
   def changeset(map), do: struct(City, map) |> City.changeset
   def assert_device_closes(device), do: assert_receive {:closed_mock, ^device}
   def assert_file_contents(device, expected_contents) do
     {:ok, {_, contents}} = StringIO.close(device)
     assert expected_contents == contents
+  end
+
+  defmodule GoodIO do
+    def open(device, [:write]), do: {:ok, device}
+    def close(device), do: send(self(), {:closed_mock, device})
   end
 
   test "creates a new output csv with just the given headers" do
