@@ -13,16 +13,16 @@ defmodule Frontend.CityCsvJob do
     File.mkdir_p Path.dirname(input_path)
     File.cp source_path, input_path
 
-    add_job %__MODULE__{filename: filename}, input_path, output_path
+    do_enqueue %__MODULE__{filename: filename}, input_path, output_path
   end
 
-  defp add_job(initial_stats, input_path, output_path) do
+  defp do_enqueue(initial_stats, input_path, output_path) do
     BackgroundJob.add initial_stats, fn(job_id) ->
       Csv.Import.call input_path, output_path, @format, fn(job_stats) ->
-        stats = job_stats |> filter
+        stats = job_stats |> filter |> Map.delete(:__struct__)
 
-        BackgroundJob.update job_id, Map.delete(stats, :__struct__)
-        Endpoint.broadcast("city_import:status", "change", stats)
+        BackgroundJob.update job_id, stats
+        Endpoint.broadcast "city_import:status", "change", stats
       end
     end
   end
