@@ -19,8 +19,7 @@ defmodule Frontend.BackgroundJob.Server do
   end
 
   def handle_cast({:update, id, data}, job_map) do
-    job = Map.fetch!(job_map, id)
-    {:noreply, %{job_map | id => %{job | data: Map.merge(job.data, data)}}}
+    {:noreply, put_in(job_map[id].data, Map.merge(job_map[id].data, data))}
   end
 
   def handle_call(:all, _from, job_map) do
