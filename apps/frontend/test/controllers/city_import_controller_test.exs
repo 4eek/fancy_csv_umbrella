@@ -1,7 +1,7 @@
 defmodule Frontend.CityImportControllerTest do
   use Frontend.ConnCase, async: false
   import Phoenix.ChannelTest, only: [assert_broadcast: 2]
-  alias Frontend.{BackgroundJob, CityCsvJob}
+  alias Frontend.{BackgroundJob, CsvImportJob}
   alias Backend.{City, Repo}
 
   test "GET /city_import/new", %{conn: conn} do
@@ -45,7 +45,7 @@ defmodule Frontend.CityImportControllerTest do
 
     assert [
       %{id: 1,
-        data: %CityCsvJob{
+        data: %CsvImportJob{
           ok: 3,
           error: 0,
           filename: "cities.csv",

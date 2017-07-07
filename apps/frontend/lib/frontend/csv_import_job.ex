@@ -1,4 +1,4 @@
-defmodule Frontend.CityCsvJob do
+defmodule Frontend.CsvImportJob do
   alias Frontend.{BackgroundJob, Endpoint, ImportPath}
   alias Backend.{Csv, City}
 

@@ -17,7 +17,7 @@ defmodule Frontend.CityImportController do
   end
 
   def create(conn, %{"city_import" => %{"file" => file}}) do
-    Frontend.CityCsvJob.enqueue(file)
+    Frontend.CsvImportJob.enqueue(file)
 
     redirect conn, to: city_import_path(@endpoint, :index)
   end
