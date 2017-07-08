@@ -18,11 +18,11 @@ defmodule Frontend.CsvImportJob do
 
   defp do_enqueue(initial_stats, input_path, output_path) do
     BackgroundJob.add initial_stats, fn(job_id) ->
-      Csv.Import.call input_path, output_path, @format, fn(job_stats) ->
+      Csv.Import.call input_path, output_path, 10, @format, fn(job_stats) ->
         stats = job_stats |> filter |> Map.delete(:__struct__)
 
         BackgroundJob.update job_id, stats
-        Endpoint.broadcast "city_import:status", "change", stats
+        Endpoint.broadcast "city_import:status", "change", stats |> Map.merge(%{id: job_id})
       end
     end
   end
