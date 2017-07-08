@@ -17,27 +17,27 @@ defmodule Backend.Csv.ImportTest do
     ,http://invalid2.com,name can't be blank
     """
 
-    Csv.Import.call input_path, output_path, format, fn(stats) ->
+    Csv.Import.call input_path, output_path, 2, format, fn(stats) ->
       send self(), stats
       nil
     end
 
     assert [
+      %City{name: "Bar", url: "http://bar.org"},
+      %City{name: "Foo", url: "http://foo.org"},
       %City{name: "Madrid", url: "http://madrid.org"},
       %City{name: "Natal", url: "http://natal.com"}
     ] = City.all
 
     assert {:ok, expected_output} == File.read(output_path)
     assert_receive %{error: 0, ok: 1}
-    assert_receive %{error: 1, ok: 1}
-    assert_receive %{error: 1, ok: 2}
-    assert_receive %{error: 2, ok: 2}
+    assert_receive %{error: 2, ok: 4}
   end
 
   test "yields error when csv has invalid headers", %{output_path: output_path, format: format} do
     input_path = Fixture.path("invalid_cities.csv")
 
-    Csv.Import.call input_path, output_path, format, fn(stats) ->
+    Csv.Import.call input_path, output_path, 10, format, fn(stats) ->
       send self(), stats
     end
 
