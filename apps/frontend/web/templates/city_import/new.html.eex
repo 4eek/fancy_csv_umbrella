@@ -1,0 +1,19 @@
+<h2 class="pull-left">Import new CSV</h2>
+
+<header class="header">
+  <nav role="navigation">
+    <ul class="nav nav-pills pull-right">
+      <li><%= link("List imports", to: city_import_path(Endpoint, :index), class: "pull-right") %></li>
+    </ul>
+  </nav>
+</header>
+
+<br clear="all">
+
+<%= form_for @conn, city_import_path(@conn, :create), [as: "city_import", multipart: true], fn(f) -> %>
+  <div class="form-group">
+    <%= file_input f, :file, class: "form-control" %>
+  </div>
+
+  <%= submit "Submit", class: "btn btn-primary" %>
+<% end %>

@@ -1,0 +1,24 @@
+<h2 class="pull-left">Jobs</h2>
+
+<header class="header">
+  <nav role="navigation">
+    <ul class="nav nav-pills pull-right">
+      <li><%= link("Import new file", to: city_import_path(Endpoint, :new), class: "pull-right") %></li>
+    </ul>
+  </nav>
+</header>
+
+<br clear="all">
+
+<table class="table" id="jobs-table">
+  <tr class="header">
+    <th>Job ID</th>
+    <th>File name</th>
+    <th>Nº Success</th>
+    <th>Nº Error</th>
+    <th>Output</th>
+  </tr>
+  <%= for job <- @jobs do %>
+    <%= render Frontend.CityImportView, "_job.html", job: job, conn: @conn %>
+  <% end %>
+</table>
