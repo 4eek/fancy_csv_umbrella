@@ -45,9 +45,9 @@ function JobsTable(container) {
     </tbody>
   `
 
-  function childTemplate(job) {
+  function childTemplate(id, job) {
     return `
-      <td>${job.id}</td>
+      <td>${id}</td>
       <td>${job.filename}</td>
       <td class="ok">${job.ok}</td>
       <td class="error">${job.error}</td>
@@ -55,13 +55,13 @@ function JobsTable(container) {
     `
   }
 
-  function add(job) {
+  function add({ id: id, data: job }) {
     const child = document.createElement('tr')
 
     child.className = 'job'
-    child.innerHTML = childTemplate(job)
+    child.innerHTML = childTemplate(id, job)
 
-    children[job.id] = {
+    children[id] = {
       ok: child.querySelector('.ok'),
       error: child.querySelector('.error'),
       output: child.querySelector('.output')
@@ -70,8 +70,8 @@ function JobsTable(container) {
     container.querySelector('tbody').insertAdjacentElement('afterbegin', child)
   }
 
-  function update(job) {
-    const child = children[job.id]
+  function update({ id: id, data: job }) {
+    const child = children[id]
 
     child.ok.innerHTML = job.ok
     child.error.innerHTML = job.error

@@ -33,15 +33,24 @@ defmodule Frontend.CityImportControllerTest do
 
     :ok = BackgroundJob.await_all
 
-    assert_broadcast "update", %{error: 0, ok: 3, message: nil, output: "/files/cities" <> _rest}
+    assert_broadcast "update", %{
+      data: %{
+        error: 0,
+        ok: 3,
+        message: nil,
+        output: "/files/cities" <> _rest
+      }
+    }
 
     assert [
-      %CsvImportJob{
+      %{
         id: 1,
-        ok: 3,
-        error: 0,
-        filename: "cities.csv",
-        output: "/files/cities" <> _rest
+        data: %CsvImportJob{
+          ok: 3,
+          error: 0,
+          filename: "cities.csv",
+          output: "/files/cities" <> _rest
+        }
       }
     ] = BackgroundJob.all
 

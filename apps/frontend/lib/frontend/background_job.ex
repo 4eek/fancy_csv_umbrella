@@ -17,7 +17,7 @@ defmodule Frontend.BackgroundJob do
     GenServer.call(pid, :await_all)
   end
 
-  def update(pid \\ @name, id, data) do
-    GenServer.cast(pid, {:update, id, data})
+  def update(pid \\ @name, %{id: id, data: job}) do
+    GenServer.cast(pid, {:update, %{id: id, data: job}})
   end
 end
