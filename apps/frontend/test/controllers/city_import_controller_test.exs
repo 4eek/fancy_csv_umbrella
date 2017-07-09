@@ -16,12 +16,6 @@ defmodule Frontend.CityImportControllerTest do
     assert html_response(conn, 200)
   end
 
-  test "GET /city_import/id", %{conn: conn} do
-    conn = get conn, city_import_path(@endpoint, :show, 1)
-
-    assert html_response(conn, 200)
-  end
-
   test "POST /city_import", %{conn: conn} do
     @endpoint.subscribe "city_import:status"
 

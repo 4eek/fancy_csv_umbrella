@@ -1,3 +1,0 @@
-<%= if @job do %>
-  <%= render "_job.html", job: @job, conn: @conn %>
-<% end %>

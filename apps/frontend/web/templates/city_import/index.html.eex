@@ -11,14 +11,4 @@
 <br clear="all">
 
 <table class="table" id="jobs-table">
-  <tr class="header">
-    <th>Job ID</th>
-    <th>File name</th>
-    <th>Nº Success</th>
-    <th>Nº Error</th>
-    <th>Output</th>
-  </tr>
-  <%= for job <- @jobs do %>
-    <%= render Frontend.CityImportView, "_job.html", job: job, conn: @conn %>
-  <% end %>
 </table>
