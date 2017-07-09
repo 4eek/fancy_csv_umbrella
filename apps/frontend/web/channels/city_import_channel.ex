@@ -8,10 +8,7 @@ defmodule Frontend.CityImportChannel do
   end
 
   def handle_info(:send_jobs, socket) do
-    jobs = Frontend.BackgroundJob.all
-    |> Enum.map(&(&1.data |> Map.merge(%{id: &1.id})))
-
-    push socket, "initialize", %{jobs: jobs}
+    push socket, "initialize", %{jobs: Frontend.BackgroundJob.all}
 
     {:noreply, socket}
   end
