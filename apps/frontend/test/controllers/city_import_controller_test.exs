@@ -17,7 +17,7 @@ defmodule Frontend.CityImportControllerTest do
   end
 
   test "POST /city_import", %{conn: conn} do
-    @endpoint.subscribe "city_import:status"
+    @endpoint.subscribe "background_job"
 
     conn = post conn, "/city_import", %{
       city_import: %{
@@ -33,7 +33,7 @@ defmodule Frontend.CityImportControllerTest do
 
     :ok = BackgroundJob.await_all
 
-    assert_broadcast "change", %{error: 0, ok: 3, message: nil, output: "/files/cities" <> _rest}
+    assert_broadcast "update", %{error: 0, ok: 3, message: nil, output: "/files/cities" <> _rest}
 
     assert [
       %{

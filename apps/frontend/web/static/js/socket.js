@@ -1,18 +1,38 @@
 import {Socket} from "phoenix"
 
-const socket = new Socket("/socket")
-const table = document.getElementById('jobs-table')
+const container = document.getElementById('jobs-table')
 
-if (table) {
-  jobsTable(socket, table).connect()
+if (container) {
+  const socket = new Socket("/socket")
+
+  JobsApp(socket, container).initialize()
 }
 
-function jobsTable(socket, table) {
-  const jobs = {}
+function JobsApp(socket, container) {
+  return {
+    initialize() {
+      socket.connect()
 
-  table.innerHTML = `
+      const jobsTable = JobsTable(container)
+      const channel = socket.channel('background_job')
+
+      channel.join()
+        .receive("ok", resp => { console.log("Joined successfully", resp) })
+        .receive("error", resp => { console.log("Unable to join", resp) })
+
+      channel.on('initialize', ({ jobs: jobs }) => jobs.forEach(jobsTable.add))
+      channel.on('add', jobsTable.add)
+      channel.on('update', jobsTable.update)
+    }
+  }
+}
+
+function JobsTable(container) {
+  const children = {}
+
+  container.innerHTML = `
     <thead>
-      <tr class="header">
+      <tr>
         <th>Job ID</th>
         <th>File name</th>
         <th>Nº Success</th>
@@ -24,51 +44,42 @@ function jobsTable(socket, table) {
     </tbody>
   `
 
-  function connect() {
-    socket.connect()
-
-    const channel = socket.channel('city_import:status')
-
-    channel.join()
-      .receive("ok", resp => { console.log("Joined successfully", resp) })
-      .receive("error", resp => { console.log("Unable to join", resp) })
-
-    channel.on("change", (job) => jobs[job.id] ? updateJob(job) : insertJob(job, 'afterbegin'))
-    channel.on("jobs", (data) => data.jobs.forEach((job) => insertJob(job, 'beforeend')))
-  }
-
-  function updateJob(job) {
-    const container = jobs[job.id]
-
-    container.ok.innerHTML = job.ok
-    container.error.innerHTML = job.error
-    container.output.innerHTML = downloadLink(job)
-  }
-
-  function downloadLink(job) {
-    return job.output ? `<a href="${job.output}">Download</a>` : '-'
-  }
-
-  function insertJob(job, position) {
-    const container = document.createElement('tr')
-
-    container.className = "job"
-    container.innerHTML = `
-      <td class="id">${job.id}</td>
+  function childTemplate(job) {
+    return `
+      <td>${job.id}</td>
       <td>${job.filename}</td>
       <td class="ok">${job.ok}</td>
       <td class="error">${job.error}</td>
-      <td class="output">${downloadLink(job)}</td>
+      <td class="output">${getDownloadLink(job)}</td>
     `
-
-    jobs[job.id] = {
-      ok: container.querySelector('.ok'),
-      error: container.querySelector('.error'),
-      output: container.querySelector('.output')
-    }
-
-    table.querySelector('tbody').insertAdjacentElement(position, container)
   }
 
-  return { connect: connect }
+  function add(job) {
+    const child = document.createElement('tr')
+
+    child.className = "job"
+    child.innerHTML = childTemplate(job)
+
+    children[job.id] = {
+      ok: child.querySelector('.ok'),
+      error: child.querySelector('.error'),
+      output: child.querySelector('.output')
+    }
+
+    container.querySelector('tbody').insertAdjacentElement('afterbegin', child)
+  }
+
+  function update(job) {
+    const child = children[job.id]
+
+    child.ok.innerHTML = job.ok
+    child.error.innerHTML = job.error
+    child.output.innerHTML = getDownloadLink(job)
+  }
+
+  function getDownloadLink(job) {
+    return job.output ? `<a href="${job.output}">Download</a>` : '-'
+  }
+
+  return { add, update }
 }

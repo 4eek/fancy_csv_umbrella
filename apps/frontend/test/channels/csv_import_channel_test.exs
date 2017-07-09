@@ -4,6 +4,6 @@ defmodule Frontend.CsvImportChannelTest do
 
   test "works" do
     {:ok, _, _socket} = socket("", %{})
-    |> subscribe_and_join(CityImportChannel, "city_import:status")
+    |> subscribe_and_join(CityImportChannel, "background_job")
   end
 end

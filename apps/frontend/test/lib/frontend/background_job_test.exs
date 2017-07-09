@@ -33,8 +33,8 @@ defmodule Frontend.BackgroundJobTest do
     assert_receive {:message, "job 1"}
     assert_receive {:message, "job 2"}
     assert [
-      %{id: 2, data: %{initial_2: "state_2"}},
-      %{id: 1, data: %{initial_1: "state_1"}}
+      %{id: 1, data: %{initial_1: "state_1"}},
+      %{id: 2, data: %{initial_2: "state_2"}}
     ] = BackgroundJob.all(pid)
   end
 

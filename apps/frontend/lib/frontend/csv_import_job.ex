@@ -2,7 +2,7 @@ defmodule Frontend.CsvImportJob do
   alias Frontend.{BackgroundJob, Endpoint, ImportPath}
   alias Backend.{Csv, City}
 
-  defstruct ~w(id filename ok error output message)a
+  defstruct id: nil, filename: nil, ok: 0, error: 0, output: nil, message: nil
 
   @upload_base "priv/static"
   @format %Csv.Format{headers: ~w(name url)a, type: City}
@@ -18,15 +18,13 @@ defmodule Frontend.CsvImportJob do
 
   defp do_enqueue(initial_stats, input_path, output_path) do
     BackgroundJob.add initial_stats, fn(job_id) ->
+      Endpoint.broadcast "background_job", "add", initial_stats |> Map.merge(%{id: job_id})
+
       Csv.Import.call input_path, output_path, 10, @format, fn(job_stats) ->
-        stats = initial_stats
-        |> Map.merge(job_stats)
-        |> Map.merge(%{id: job_id})
-        |> filter
-        |> Map.delete(:__struct__)
+        stats = job_stats |> Map.merge(%{id: job_id}) |> filter |> Map.delete(:__struct__)
 
         BackgroundJob.update job_id, stats
-        Endpoint.broadcast "city_import:status", "change", stats
+        Endpoint.broadcast "background_job", "update", stats
       end
     end
   end

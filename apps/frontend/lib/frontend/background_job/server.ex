@@ -23,7 +23,7 @@ defmodule Frontend.BackgroundJob.Server do
   end
 
   def handle_call(:all, _from, job_map) do
-    {:reply, job_map |> Map.values |> Enum.reverse, job_map}
+    {:reply, job_map |> Map.values, job_map}
   end
 
   def handle_call(:await_all, _from, job_map) do
