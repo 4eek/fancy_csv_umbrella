@@ -1,21 +1,86 @@
-// Brunch automatically concatenates all files in your
-// watched paths. Those paths can be configured at
-// config.paths.watched in "brunch-config.js".
-//
-// However, those files will only be executed if
-// explicitly imported. The only exception are files
-// in vendor, which are never wrapped in imports and
-// therefore are always executed.
+import 'phoenix_html'
+import {Socket} from 'phoenix'
 
-// Import dependencies
-//
-// If you no longer want to use a dependency, remember
-// to also remove its path from "config.paths.watched".
-import "phoenix_html"
+const container = document.getElementById('jobs-table')
 
-// Import local files
-//
-// Local files can be imported directly using relative
-// paths "./socket" or full ones "web/static/js/socket".
+if (container) {
+  const socket = new Socket('/socket')
 
-import socket from "./socket"
+  JobsApp(socket, container).initialize()
+}
+
+function JobsApp(socket, container) {
+  return {
+    initialize() {
+      socket.connect()
+
+      const jobsTable = JobsTable(container)
+      const channel = socket.channel('background_job')
+
+      channel.join()
+        .receive('ok', resp => { console.log('Joined successfully', resp) })
+        .receive('error', resp => { console.log('Unable to join', resp) })
+
+      channel.on('initialize', ({ jobs: jobs }) => jobs.forEach(jobsTable.add))
+      channel.on('add', jobsTable.add)
+      channel.on('update', jobsTable.update)
+    }
+  }
+}
+
+function JobsTable(container) {
+  const children = {}
+
+  container.innerHTML = `
+    <thead>
+      <tr>
+        <th>Job ID</th>
+        <th>File name</th>
+        <th>Nº Success</th>
+        <th>Nº Error</th>
+        <th>Output</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  `
+
+  function childTemplate(job) {
+    return `
+      <td>${job.id}</td>
+      <td>${job.filename}</td>
+      <td class="ok">${job.ok}</td>
+      <td class="error">${job.error}</td>
+      <td class="output">${getDownloadLink(job)}</td>
+    `
+  }
+
+  function add(job) {
+    const child = document.createElement('tr')
+
+    child.className = 'job'
+    child.innerHTML = childTemplate(job)
+
+    children[job.id] = {
+      ok: child.querySelector('.ok'),
+      error: child.querySelector('.error'),
+      output: child.querySelector('.output')
+    }
+
+    container.querySelector('tbody').insertAdjacentElement('afterbegin', child)
+  }
+
+  function update(job) {
+    const child = children[job.id]
+
+    child.ok.innerHTML = job.ok
+    child.error.innerHTML = job.error
+    child.output.innerHTML = getDownloadLink(job)
+  }
+
+  function getDownloadLink(job) {
+    return job.output ? `<a href="${job.output}">Download</a>` : '-'
+  }
+
+  return { add, update }
+}
