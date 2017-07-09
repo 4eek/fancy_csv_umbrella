@@ -1,13 +1,13 @@
-defmodule Frontend.CityImportChannel do
+defmodule Frontend.BackgroundJobChannel do
   use Phoenix.Channel
 
   def join("background_job", _message, socket) do
-    send self(), :send_jobs
+    send self(), :initialize
 
     {:ok, socket}
   end
 
-  def handle_info(:send_jobs, socket) do
+  def handle_info(:initialize, socket) do
     push socket, "initialize", %{jobs: Frontend.BackgroundJob.all}
 
     {:noreply, socket}

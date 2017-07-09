@@ -10,5 +10,5 @@
 
 <br clear="all">
 
-<table class="table" id="jobs-table">
-</table>
+<div id="jobs-table">
+</div>

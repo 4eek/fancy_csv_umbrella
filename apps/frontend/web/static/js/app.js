@@ -32,17 +32,19 @@ function JobsTable(container) {
   const children = {}
 
   container.innerHTML = `
-    <thead>
-      <tr>
-        <th>Job ID</th>
-        <th>File name</th>
-        <th>Nº Success</th>
-        <th>Nº Error</th>
-        <th>Output</th>
-      </tr>
-    </thead>
-    <tbody>
-    </tbody>
+    <table class="table" id="jobs-table">
+      <thead>
+        <tr>
+          <th>Job ID</th>
+          <th>File name</th>
+          <th>Nº Success</th>
+          <th>Nº Error</th>
+          <th>Output</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
   `
 
   function childTemplate(id, job) {

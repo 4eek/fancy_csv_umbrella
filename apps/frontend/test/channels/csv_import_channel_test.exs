@@ -1,9 +1,9 @@
 defmodule Frontend.CsvImportChannelTest do
   use Frontend.ChannelCase
-  alias Frontend.CityImportChannel
+  alias Frontend.BackgroundJobChannel
 
   test "works" do
     {:ok, _, _socket} = socket("", %{})
-    |> subscribe_and_join(CityImportChannel, "background_job")
+    |> subscribe_and_join(BackgroundJobChannel, "background_job")
   end
 end
