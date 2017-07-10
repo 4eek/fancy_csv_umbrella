@@ -18,6 +18,7 @@ defmodule Frontend.BackgroundJob.Server do
     {:noreply, Map.put(job_map, data.id, %{data | task: task})}
   end
 
+  def handle_cast(:delete_all, _job_map), do: {:noreply, %{}}
   def handle_cast({:update, %{id: id, data: data}}, job_map) do
     data = Map.delete(data, :__struct__)
 
@@ -30,10 +31,6 @@ defmodule Frontend.BackgroundJob.Server do
     |> Enum.map(&Map.delete(&1, :task))
 
     {:reply, jobs_data, job_map}
-  end
-
-  def handle_cast(:delete_all, _job_map) do
-    {:noreply, %{}}
   end
 
   def handle_call(:await_all, _from, job_map) do
