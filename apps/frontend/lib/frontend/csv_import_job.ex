@@ -1,12 +1,14 @@
 defmodule Frontend.CsvImportJob do
   alias Frontend.{BackgroundJob, Endpoint, ImportPath}
   alias Backend.Csv
+  alias Csv.Import.Options
+  alias Plug.Upload
 
   @pid BackgroundJob.pid
 
   defstruct [:filename, :output, :message, ok: 0, error: 0]
 
-  def enqueue(pid \\ @pid, %Plug.Upload{path: path, filename: filename}, %Csv.Import.Options{} = options, output_dir) do
+  def enqueue(pid \\ @pid, %Upload{path: path, filename: filename}, %Options{} = options, output_dir) do
     {input_path, output_path} = ImportPath.resolve(output_dir, filename)
 
     File.mkdir_p Path.dirname(input_path)
@@ -30,12 +32,8 @@ defmodule Frontend.CsvImportJob do
     Endpoint.broadcast "background_job", event_name, data
   end
 
-  defp filter(stats, output_dir) do
-    case stats do
-      %{output: nil} ->
-        stats
-      %{output: output} ->
-        %{stats | output: String.replace(output, output_dir, "")}
-    end
+  def filter(%{output: nil} = stats, _output_dir), do: stats
+  def filter(%{output: output} = stats, output_dir) do
+    %{stats | output: String.replace(output, output_dir, "")}
   end
 end
