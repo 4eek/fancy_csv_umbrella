@@ -41,6 +41,7 @@ defmodule Frontend.CityImportControllerTest do
 
     :ok = BackgroundJob.await_all
 
+    assert_broadcast "add", %{id: 1, data: %{filename: "cities.csv"}}
     assert_broadcast "update", %{
       data: %{
         error: 0,
