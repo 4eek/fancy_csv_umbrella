@@ -1,17 +1,17 @@
 defmodule Backend.Csv.Import do
   alias Backend.{Csv, SaveRecord}
 
-  def call(input_path, output_path, max_concurrency, format = %Csv.Format{}, on_update) do
+  def call(input_path, output_path, options = %Csv.Import.Options{type: type} = options, on_update) do
     {:ok, _} = File.open input_path, fn(input_device) ->
-      case Csv.RecordStream.new(input_device, format) do
-        {:ok, stream} -> import(stream, format, output_path, max_concurrency, on_update)
+      case Csv.RecordStream.new(input_device, headers: options.headers, type: type) do
+        {:ok, stream} -> import(stream, options, output_path, on_update)
         :invalid_csv -> abort(on_update)
       end
     end
   end
 
-  defp import(stream, format, output_path, max_concurrency, on_update) do
-    {:ok, _} = Csv.Import.Output.open output_path, format.headers, fn(output_state) ->
+  defp import(stream, %{headers: headers, max_concurrency: max_concurrency}, output_path, on_update) do
+    {:ok, _} = Csv.Import.Output.open output_path, headers, fn(output_state) ->
       stream
       |> Task.async_stream(SaveRecord, :call, [], max_concurrency: max_concurrency)
       |> Stream.map(fn({:ok, changeset}) -> changeset end)

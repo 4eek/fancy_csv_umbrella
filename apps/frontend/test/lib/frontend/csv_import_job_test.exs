@@ -13,15 +13,15 @@ defmodule CsvImportJobTest do
       filename: "cities.csv",
       content_type: "text/csv"
     }
-    format = %Csv.Format{headers: ~w(name url)a, type: City}
+    options = %Csv.Import.Options{headers: ~w(name url)a, type: City}
     {:ok, tmpdir} = Briefly.create(directory: true)
     {:ok, pid} = BackgroundJob.Server.start_link
 
-    {:ok, pid: pid, format: format, upload: upload, base_dir: tmpdir}
+    {:ok, pid: pid, options: options, upload: upload, base_dir: tmpdir}
   end
 
   test "imports csv and broadcasts status", %{pid: pid} = opts do
-    CsvImportJob.enqueue pid, opts.upload, opts.format, opts.base_dir
+    CsvImportJob.enqueue pid, opts.upload, opts.options, opts.base_dir
 
     :ok = BackgroundJob.await_all(pid)
 

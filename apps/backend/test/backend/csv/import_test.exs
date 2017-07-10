@@ -4,12 +4,12 @@ defmodule Backend.Csv.ImportTest do
 
   setup do
     {:ok, output_path} = Briefly.create
-    format = %Csv.Format{headers: ~w(name url)a, type: City}
+    options = %Csv.Import.Options{headers: ~w(name url)a, type: City, max_concurrency: 2}
 
-    {:ok, output_path: output_path, format: format}
+    {:ok, output_path: output_path, options: options}
   end
   
-  test "imports records of a csv file", %{output_path: output_path, format: format} do
+  test "imports records of a csv file", %{output_path: output_path, options: options} do
     input_path = Fixture.path("cities.csv")
     expected_output = """
     name,url,errors
@@ -17,7 +17,7 @@ defmodule Backend.Csv.ImportTest do
     ,http://invalid2.com,name can't be blank
     """
 
-    Csv.Import.call input_path, output_path, 2, format, fn(stats) ->
+    Csv.Import.call input_path, output_path, options, fn(stats) ->
       send self(), stats
       nil
     end
@@ -34,11 +34,12 @@ defmodule Backend.Csv.ImportTest do
     assert_receive %{error: 2, ok: 4}
   end
 
-  test "yields error when csv has invalid headers", %{output_path: output_path, format: format} do
+  test "yields error when csv has invalid headers", %{output_path: output_path, options: options} do
     input_path = Fixture.path("invalid_cities.csv")
 
-    Csv.Import.call input_path, output_path, 10, format, fn(stats) ->
+    Csv.Import.call input_path, output_path, options, fn(stats) ->
       send self(), stats
+      nil
     end
 
     assert [] == City.all

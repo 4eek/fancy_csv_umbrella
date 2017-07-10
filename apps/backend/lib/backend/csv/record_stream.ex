@@ -1,7 +1,7 @@
 defmodule Backend.Csv.RecordStream do
   alias Backend.Csv
 
-  def new(device, %Csv.Format{headers: valid_headers, type: type}) do
+  def new(device, headers: valid_headers, type: type) do
     stream = device |> to_stream
     headers = stream |> extract_headers
 
