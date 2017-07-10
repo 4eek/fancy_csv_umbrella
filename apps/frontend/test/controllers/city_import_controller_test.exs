@@ -4,6 +4,14 @@ defmodule Frontend.CityImportControllerTest do
   alias Frontend.{BackgroundJob, CsvImportJob}
   alias Backend.{City, Repo}
 
+  setup do
+    on_exit fn ->
+      BackgroundJob.delete_all
+    end
+
+    :ok
+  end
+
   test "GET /city_import/new", %{conn: conn} do
     conn = get conn, city_import_path(@endpoint, :new)
 

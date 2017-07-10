@@ -20,4 +20,8 @@ defmodule Frontend.BackgroundJob do
   def update(pid \\ @name, %{id: id, data: job}) do
     GenServer.cast(pid, {:update, %{id: id, data: job}})
   end
+
+  def delete_all(pid \\ @name) do
+    GenServer.cast(pid, :delete_all)
+  end
 end

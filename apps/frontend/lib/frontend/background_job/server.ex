@@ -32,6 +32,10 @@ defmodule Frontend.BackgroundJob.Server do
     {:reply, jobs_data, job_map}
   end
 
+  def handle_cast(:delete_all, _job_map) do
+    {:noreply, %{}}
+  end
+
   def handle_call(:await_all, _from, job_map) do
     job_map |> Map.values |> Enum.map(&Task.await(&1.task))
 
@@ -44,4 +48,3 @@ defmodule Frontend.BackgroundJob.Server do
     {:noreply, job_map}
   end
 end
-
