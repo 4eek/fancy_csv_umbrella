@@ -32,7 +32,7 @@ function JobsTable(container) {
   const children = {}
 
   container.innerHTML = `
-    <table class="table" id="jobs-table">
+    <table class="table">
       <thead>
         <tr>
           <th>Job ID</th>
