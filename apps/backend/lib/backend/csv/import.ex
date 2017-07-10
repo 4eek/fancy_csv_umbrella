@@ -13,9 +13,12 @@ defmodule Backend.Csv.Import do
   defp import(stream, format, output_path, max_concurrency, on_update) do
     {:ok, _} = Csv.Import.Output.open output_path, format.headers, fn(output_state) ->
       stream
-      |> importable_record_stream(max_concurrency)
-      |> writeable_output_stream(output_state)
-      |> kick_off_and_sum_stats(on_update, output_path, max_concurrency)
+      |> Task.async_stream(SaveRecord, :call, [], max_concurrency: max_concurrency)
+      |> Stream.map(fn({:ok, changeset}) -> changeset end)
+      |> Stream.map(&add_output_row(&1, output_state))
+      |> Enum.reduce(Csv.Import.Stats.new, &sum_stats(&2, &1, on_update, max_concurrency))
+      |> Csv.Import.Stats.update(output: output_path)
+      |> on_update.()
     end
   end
 
@@ -25,35 +28,19 @@ defmodule Backend.Csv.Import do
     |> on_update.()
   end
 
-  defp importable_record_stream(stream, max_concurrency) do
-    stream
-    |> Task.async_stream(SaveRecord, :call, [], max_concurrency: max_concurrency)
-    |> Stream.map(fn({:ok, changeset}) -> changeset end)
-  end
-
-  defp writeable_output_stream(stream, output_state) do
-    stream
-    |> Stream.map(&add_output_row(&1, output_state))
-  end
-
   defp add_output_row(changeset, output_state) do
     Csv.Import.Output.add_row output_state, changeset
     changeset
   end
 
-  defp kick_off_and_sum_stats(changeset, on_update, output_path, max_concurrency) do
-    Enum.reduce(changeset, Csv.Import.Stats.new, &sum_stats(&2, &1, on_update, max_concurrency))
-    |> Csv.Import.Stats.update(output: output_path)
-    |> on_update.()
-  end
-
-  defp sum_stats(stats, {result, _}, on_update, max_concurrency) do
+  defp sum_stats(stats, {result, _}, on_update, send_stats_freq) do
     new_stats = stats |> Csv.Import.Stats.update(result)
-
-    if rem(stats.ok + stats.error, max_concurrency) == 0 do
-      new_stats |> on_update.()
-    end
-
+    send_stats new_stats, stats, on_update, send_stats_freq
     new_stats
   end
+
+  def send_stats(new_stats, %{ok: ok, error: error}, on_update, send_stats_freq)
+      when rem(ok + error, send_stats_freq) == 0, do: new_stats |> on_update.()
+
+  def send_stats(_new_stats, _stats, _on_update, _send_stats_freq), do: nil
 end
