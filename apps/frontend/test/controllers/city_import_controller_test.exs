@@ -1,7 +1,6 @@
 defmodule Frontend.CityImportControllerTest do
   use Frontend.ConnCase, async: false
-  import Phoenix.ChannelTest, only: [assert_broadcast: 2]
-  alias Frontend.{BackgroundJob, CsvImportJob}
+  alias Frontend.BackgroundJob
   alias Backend.{City, Repo}
 
   setup do
@@ -36,33 +35,9 @@ defmodule Frontend.CityImportControllerTest do
         }
       }
     }
-
-    assert redirected_to(conn) == city_import_path(@endpoint, :index)
-
     :ok = BackgroundJob.await_all
 
-    assert_broadcast "add", %{id: 1, data: %{filename: "cities.csv"}}
-    assert_broadcast "update", %{
-      data: %{
-        error: 0,
-        ok: 3,
-        message: nil,
-        output: "/files/cities" <> _rest
-      }
-    }
-
-    assert [
-      %{
-        id: 1,
-        data: %CsvImportJob{
-          ok: 3,
-          error: 0,
-          filename: "cities.csv",
-          output: "/files/cities" <> _rest
-        }
-      }
-    ] = BackgroundJob.all
-
+    assert redirected_to(conn) == city_import_path(@endpoint, :index)
     assert 3 == Repo.aggregate(City, :count, :id)
   end
 end
