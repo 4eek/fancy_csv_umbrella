@@ -1,17 +1,17 @@
 defmodule Backend.Csv.Import do
   alias Backend.{Csv, SaveRecord}
 
-  def call(input_path, output_path, options = %Csv.Import.Options{type: type} = options, on_update) do
+  def call(%Csv.Import.Options{input_path: input_path, type: type} = options, on_update) do
     {:ok, _} = File.open input_path, fn(input_device) ->
       case Csv.RecordStream.new(input_device, headers: options.headers, type: type) do
-        {:ok, stream} -> import(stream, options, output_path, on_update)
+        {:ok, stream} -> import(stream, options, on_update)
         :invalid_csv -> abort(on_update)
       end
     end
   end
 
-  defp import(stream, %{headers: headers, max_concurrency: max_concurrency}, output_path, on_update) do
-    {:ok, _} = Csv.Import.Output.open output_path, headers, fn(output_state) ->
+  defp import(stream, %{max_concurrency: max_concurrency, output_path: output_path} = options, on_update) do
+    {:ok, _} = Csv.Import.Output.open output_path, options.headers, fn(output_state) ->
       stream
       |> Task.async_stream(SaveRecord, :call, [], max_concurrency: max_concurrency)
       |> Stream.map(fn({:ok, changeset}) -> changeset end)
@@ -35,7 +35,7 @@ defmodule Backend.Csv.Import do
 
   defp sum_stats(stats, {result, _}, on_update, send_stats_freq) do
     new_stats = stats |> Csv.Import.Stats.update(result)
-    send_stats new_stats, stats, on_update, send_stats_freq
+    new_stats |> send_stats(stats, on_update, send_stats_freq)
     new_stats
   end
 
