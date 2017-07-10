@@ -2,7 +2,7 @@ defmodule Frontend.UserSocket do
   use Phoenix.Socket
 
   ## Channels
-  channel "background_job", Frontend.CityImportChannel
+  channel "background_job", Frontend.BackgroundJobChannel
 
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket
