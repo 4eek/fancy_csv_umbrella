@@ -1,12 +1,9 @@
 defmodule Frontend.CityImportController do
   use Frontend.Web, :controller
+  alias Backend.Csv.Import.Options
 
-  @options %Backend.Csv.Import.Options{
-    headers: ~w(name url)a,
-    type: Backend.City,
-    max_concurrency: 10
-  }
-  @output_dir "priv/static"
+  @options %Options{headers: ~w(name url)a, type: Backend.City, max_concurrency: 10}
+  @output_dir Application.app_dir(:frontend, ["priv", "static"])
 
   def index(conn, _params) do
     render conn, "index.html"
