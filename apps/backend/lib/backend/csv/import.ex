@@ -4,14 +4,14 @@ defmodule Backend.Csv.Import do
   def call(%Csv.Import.Options{input_path: input_path, type: type} = options, on_update) do
     {:ok, _} = File.open input_path, fn(input_device) ->
       case Csv.RecordStream.new(input_device, headers: options.headers, type: type) do
-        {:ok, stream} -> import(stream, options, on_update)
-        :invalid_csv -> abort(on_update)
+        {:ok, stream} -> import stream, options, on_update
+        :invalid_csv -> abort "Invalid CSV headers", on_update
       end
     end
   end
 
-  defp import(stream, %{max_concurrency: max_concurrency, output_path: output_path} = options, on_update) do
-    {:ok, _} = Csv.Import.Output.open output_path, options.headers, fn(output_state) ->
+  defp import(stream, %{headers: headers, max_concurrency: max_concurrency, output_path: output_path}, on_update) do
+    {:ok, _} = Csv.Import.Output.open output_path, headers, fn(output_state) ->
       stream
       |> Task.async_stream(SaveRecord, :call, [], max_concurrency: max_concurrency)
       |> Stream.map(fn({:ok, changeset}) -> changeset end)
@@ -22,9 +22,9 @@ defmodule Backend.Csv.Import do
     end
   end
 
-  defp abort(on_update) do
+  defp abort(message, on_update) do
     Csv.Import.Stats.new
-    |> Csv.Import.Stats.update(message: "Invalid CSV headers")
+    |> Csv.Import.Stats.update(message: message)
     |> on_update.()
   end
 
