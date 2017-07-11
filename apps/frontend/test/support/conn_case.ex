@@ -19,6 +19,7 @@ defmodule Frontend.ConnCase do
     quote do
       # Import conveniences for testing with connections
       use Phoenix.ConnTest
+      use Backend.Support.DbCase
 
       import Frontend.Router.Helpers
 
@@ -27,8 +28,7 @@ defmodule Frontend.ConnCase do
     end
   end
 
-  setup tags do
-
+  setup do
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 end

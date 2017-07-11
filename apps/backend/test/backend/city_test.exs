@@ -1,5 +1,5 @@
 defmodule Backend.CityTest do
-  use DbCase
+  use Backend.Support.DbCase, async: false
   alias Backend.{City, Repo}
 
   test "inserts a valid record" do

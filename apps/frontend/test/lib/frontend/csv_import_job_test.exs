@@ -1,27 +1,24 @@
 defmodule CsvImportJobTest do
-  use ExUnit.Case, async: false
+  use Backend.Support.DbCase, async: false
   alias Frontend.Endpoint
   import Phoenix.ChannelTest, only: [assert_broadcast: 2]
   alias Frontend.{BackgroundJob, CsvImportJob}
   alias Backend.{City, Repo, Csv}
 
+  @options %Csv.Import.Options{headers: ~w(name url)a, type: City}
+  @upload %Plug.Upload{path: "test/fixtures/cities.csv", filename: "cities.csv"}
+
   setup do
     Endpoint.subscribe "background_job"
 
-    upload = %Plug.Upload{
-      path: "test/fixtures/cities.csv",
-      filename: "cities.csv",
-      content_type: "text/csv"
-    }
-    options = %Csv.Import.Options{headers: ~w(name url)a, type: City}
     {:ok, tmpdir} = Briefly.create(directory: true)
     {:ok, pid} = BackgroundJob.Server.start_link
 
-    {:ok, pid: pid, options: options, upload: upload, base_dir: tmpdir}
+    {:ok, pid: pid, base_dir: tmpdir}
   end
 
-  test "imports csv and broadcasts status", %{pid: pid} = opts do
-    CsvImportJob.enqueue pid, opts.upload, opts.options, opts.base_dir
+  test "imports csv and broadcasts status", %{pid: pid, base_dir: base_dir} do
+    CsvImportJob.enqueue pid, @upload, @options, base_dir
 
     :ok = BackgroundJob.await_all(pid)
 
@@ -35,7 +32,7 @@ defmodule CsvImportJobTest do
         output: output_dir
       }
     }
-    assert File.exists?(opts.base_dir <> output_dir)
+    assert File.exists?(base_dir <> output_dir)
     assert [
       %{
         id: 1,
@@ -47,7 +44,5 @@ defmodule CsvImportJobTest do
         }
       }
     ] = BackgroundJob.all(pid)
-
-    Repo.delete_all(City)
   end
 end

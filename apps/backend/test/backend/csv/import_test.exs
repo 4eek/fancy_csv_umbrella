@@ -1,5 +1,5 @@
 defmodule Backend.Csv.ImportTest do
-  use DbCase
+  use Backend.Support.DbCase, async: false
   alias Backend.{Csv, City}
 
   setup do
