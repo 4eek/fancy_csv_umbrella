@@ -53,7 +53,7 @@ function JobsTable(container) {
       <td>${job.filename}</td>
       <td class="ok">${job.ok}</td>
       <td class="error">${job.error}</td>
-      <td class="output">${getDownloadLink(job)}</td>
+      <td class="output">${getOutput(job)}</td>
     `
   }
 
@@ -77,11 +77,16 @@ function JobsTable(container) {
 
     child.ok.innerHTML = job.ok
     child.error.innerHTML = job.error
-    child.output.innerHTML = getDownloadLink(job)
+    child.output.innerHTML = getOutput(job)
   }
 
-  function getDownloadLink(job) {
-    return job.output ? `<a href="${job.output}">Download</a>` : '-'
+  function getOutput(job) {
+    if (job.message) {
+      return job.message
+    }
+    else {
+      return job.output ? `<a href="${job.output}">Download</a>` : '-'
+    }
   }
 
   return { add, update }
