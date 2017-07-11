@@ -7,25 +7,25 @@ defmodule Frontend.BackgroundJobTest do
     {:ok, pid: pid, self: self()}
   end
 
-  test "registers one job", %{pid: pid, self: me} do
+  test "registers one job", %{pid: pid, self: self} do
     BackgroundJob.add pid, %{initial: "state"}, fn(job_id) ->
       assert 1 = job_id
-      send me, {:message, "job"}
+      send self, {:message, "job"}
     end
 
     assert_receive {:message, "job"}
     assert [%{id: 1, data: %{initial: "state"}}] = BackgroundJob.all(pid)
   end
 
-  test "registers two jobs", %{pid: pid, self: me} do
+  test "registers two jobs", %{pid: pid, self: self} do
     BackgroundJob.add pid, %{initial_1: "state_1"}, fn(job_id) ->
       assert 1 = job_id
-      send :test, {:message, "job 1"}
+      send self, {:message, "job 1"}
     end
 
     BackgroundJob.add pid, %{initial_2: "state_2"}, fn(job_id) ->
       assert 2 = job_id
-      send me, {:message, "job 2"}
+      send self, {:message, "job 2"}
     end
 
     assert_receive {:message, "job 1"}

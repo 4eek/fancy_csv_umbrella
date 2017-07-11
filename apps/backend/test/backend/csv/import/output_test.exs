@@ -2,7 +2,7 @@ defmodule Backend.Csv.Import.OutputTest do
   use ExUnit.Case
   alias Backend.{City, Csv} 
 
-  def changeset(map), do: struct(City, map) |> City.changeset
+  def build_changeset(map), do: struct(City, map) |> City.changeset
   def assert_device_closes(device), do: assert_receive {:closed_mock, ^device}
   def assert_file_contents(device, expected_contents) do
     {:ok, {_, contents}} = StringIO.close(device)
@@ -24,12 +24,10 @@ defmodule Backend.Csv.Import.OutputTest do
 
   test "appends an invalid csv row after the headers" do
     {:ok, device} = StringIO.open("")
+    changeset = build_changeset(%{name: nil, url: "http://i.com"})
 
     Csv.Import.Output.open(device, ~w(name url)a, fn(output_state) ->
-      Csv.Import.Output.add_row output_state, {:error, changeset(%{
-        name: nil,
-        url: "http://i.com"
-      })}
+      Csv.Import.Output.add_row output_state, {:error, changeset}
     end, GoodIO)
 
     assert_file_contents device, """
@@ -40,12 +38,10 @@ defmodule Backend.Csv.Import.OutputTest do
 
   test "considers given header order when writing invalid csv row" do
     {:ok, device} = StringIO.open("")
+    changeset = build_changeset(%{name: nil, url: "http://i.com"})
 
     Csv.Import.Output.open(device, ~w(url name)a, fn(output_state) ->
-      Csv.Import.Output.add_row output_state, {:error, changeset(%{
-        name: nil,
-        url: "http://i.com"
-      })}
+      Csv.Import.Output.add_row output_state, {:error, changeset}
     end, GoodIO)
 
     assert_file_contents device, """
@@ -57,12 +53,10 @@ defmodule Backend.Csv.Import.OutputTest do
 
   test "gathers validation errors correctly" do
     {:ok, device} = StringIO.open("")
+    changeset = build_changeset(%{name: nil, url: nil})
 
     Csv.Import.Output.open(device, ~w(name url)a, fn(output_state) ->
-      Csv.Import.Output.add_row output_state, {:error, changeset(%{
-        name: nil,
-        url: nil
-      })}
+      Csv.Import.Output.add_row output_state, {:error, changeset}
     end, GoodIO)
 
     assert_file_contents device, """
@@ -74,12 +68,10 @@ defmodule Backend.Csv.Import.OutputTest do
 
   test "does not append valid changeset fields" do
     {:ok, device} = StringIO.open("")
+    changeset = build_changeset(%{name: "Town", url: "http://town.com"})
 
     Csv.Import.Output.open(device, ~w(name url)a, fn(output_state) ->
-      Csv.Import.Output.add_row output_state, {:ok, changeset(%{
-        name: "Town",
-        url: "http://town.com"
-      })}
+      Csv.Import.Output.add_row output_state, {:ok, changeset}
     end, GoodIO)
 
     assert_file_contents device, "name,url,errors\n"
