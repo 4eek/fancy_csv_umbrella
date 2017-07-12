@@ -2,10 +2,13 @@ defmodule Backend.CityTest do
   use Backend.Support.DbCase, async: false
   alias Backend.{City, Repo}
 
-  test "inserts a valid record" do
-    changeset = City.changeset(%City{}, %{name: "Natal", url: "http://natal.com"})
+  defp valid_changeset do
+    %City{}
+    |> City.changeset(%{name: "Natal", url: "http://natal.com"})
+  end
 
-    assert {:ok, _} = Repo.insert(changeset)
+  test "inserts a valid record" do
+    assert {:ok, _} = Repo.insert(valid_changeset())
   end
 
   test "does not insert when name is missing" do
@@ -20,5 +23,12 @@ defmodule Backend.CityTest do
 
     assert {:error, changeset} = Repo.insert(changeset)
     assert {"can't be blank", _} = changeset.errors[:url]
+  end
+
+  test "counts the number of cities" do
+    Repo.insert(valid_changeset())
+    Repo.insert(valid_changeset())
+
+    assert 2 = City.count
   end
 end
