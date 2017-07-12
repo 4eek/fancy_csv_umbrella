@@ -5,8 +5,8 @@ defmodule CsvImportJobTest do
   alias Frontend.{BackgroundJob, CsvImportJob}
   alias Backend.{City, Repo, Csv}
 
-  @options %Csv.Import.Options{headers: ~w(name url)a, type: City}
   @upload %Plug.Upload{path: "test/fixtures/cities.csv", filename: "cities.csv"}
+  @options %Csv.Import.Options{headers: ~w(name url)a, type: City}
 
   setup do
     Endpoint.subscribe "background_job"
@@ -24,25 +24,13 @@ defmodule CsvImportJobTest do
 
     assert 3 == Repo.aggregate(City, :count, :id)
     assert_broadcast "add", %{id: 1, data: %{filename: "cities.csv"}}
-    assert_broadcast "update", %{
-      data: %{
-        error: 0,
-        ok: 3,
-        message: nil,
-        output: output_dir
-      }
-    }
+    assert_broadcast "update", %{data: %{error: 0, ok: 3, message: nil, output: output_dir}}
     assert File.exists?(base_dir <> output_dir)
-    assert [
-      %{
-        id: 1,
-        data: %CsvImportJob{
-          ok: 3,
-          error: 0,
-          filename: "cities.csv",
-          output: "/files/cities" <> _rest
-        }
-      }
-    ] = BackgroundJob.all(pid)
+    assert [%{id: 1, data: %CsvImportJob{
+      ok: 3,
+      error: 0,
+      filename: "cities.csv",
+      output: "/files/cities" <> _rest
+    }}] = BackgroundJob.all(pid)
   end
 end
