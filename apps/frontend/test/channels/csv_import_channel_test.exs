@@ -1,5 +1,6 @@
 defmodule Frontend.CsvImportChannelTest do
-  use Frontend.ChannelCase
+  use Frontend.ChannelCase, async: false
+  use Frontend.BackgroundJobCleanup
   alias Frontend.BackgroundJobChannel
 
   test "sends initial jobs upon connecting" do
@@ -9,7 +10,5 @@ defmodule Frontend.CsvImportChannelTest do
     |> subscribe_and_join(BackgroundJobChannel, "background_job")
 
     assert_push "initialize", %{jobs: [%{id: 1, data: %{j1: "j1"}}]}
-
-    Frontend.BackgroundJob.delete_all
   end
 end

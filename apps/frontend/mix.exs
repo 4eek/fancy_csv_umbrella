@@ -38,6 +38,8 @@ defmodule Frontend.Mixfile do
      {:phoenix_live_reload, "~> 1.0", only: :dev},
      {:gettext, "~> 0.11"},
      {:cowboy, "~> 1.0"},
-     {:backend, in_umbrella: true}]
+     {:backend, in_umbrella: true},
+     {:wallaby, "~> 0.17.0", only: :test},
+     {:phoenix_ecto, "~> 3.0", only: :test}]
   end
 end

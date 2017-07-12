@@ -26,8 +26,7 @@ defmodule Frontend.ChannelCase do
     end
   end
 
-  setup tags do
-
+  setup do
     :ok
   end
 end

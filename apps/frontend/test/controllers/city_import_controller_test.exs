@@ -1,5 +1,6 @@
 defmodule Frontend.CityImportControllerTest do
   use Frontend.ConnCase, async: false
+  use Frontend.BackgroundJobCleanup
   alias Frontend.BackgroundJob
   alias Backend.{Repo, City}
 
@@ -30,7 +31,5 @@ defmodule Frontend.CityImportControllerTest do
     assert redirected_to(conn) == city_import_path(@endpoint, :index)
     assert 1 == BackgroundJob.all |> Enum.count
     assert 3 == Repo.aggregate(City, :count, :id)
-
-    BackgroundJob.delete_all
   end
 end

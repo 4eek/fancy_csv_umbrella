@@ -1,6 +1,10 @@
 defmodule Frontend.Endpoint do
   use Phoenix.Endpoint, otp_app: :frontend
 
+  if Application.get_env(:frontend, :sql_sandbox) do
+    plug Phoenix.Ecto.SQL.Sandbox
+  end
+
   socket "/socket", Frontend.UserSocket
 
   # Serve at "/" the static files from "priv/static" directory.

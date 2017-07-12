@@ -22,6 +22,6 @@ defmodule Frontend.BackgroundJob do
   end
 
   def delete_all(pid \\ pid()) do
-    GenServer.cast(pid, :delete_all)
+    GenServer.call(pid, :delete_all)
   end
 end

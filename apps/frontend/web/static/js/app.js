@@ -18,7 +18,6 @@ function JobsApp(socket, container) {
       const channel = socket.channel('background_job')
 
       channel.join()
-        .receive('ok', resp => { console.log('Joined successfully', resp) })
         .receive('error', resp => { console.log('Unable to join', resp) })
 
       channel.on('initialize', ({ jobs: jobs }) => jobs.forEach(jobsTable.add))
@@ -49,8 +48,8 @@ function JobsTable(container) {
 
   function childTemplate(id, job) {
     return `
-      <td>${id}</td>
-      <td>${job.filename}</td>
+      <td class="id">${id}</td>
+      <td class="filename">${job.filename}</td>
       <td class="ok">${job.ok}</td>
       <td class="error">${job.error}</td>
       <td class="output">${getOutput(job)}</td>
