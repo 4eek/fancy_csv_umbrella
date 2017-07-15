@@ -58,6 +58,6 @@ defmodule JobRunnerTest do
     JobRunner.add pid, %{initial: "state"}, fn(_) -> nil end
     JobRunner.update pid, %{id: 5, data: %{initial: "state_2", random: "123"}}
 
-    assert_receive {:EXIT, ^pid, {{:badmap, _}, _}}
+    assert_receive {:EXIT, ^pid, _}
   end
 end
