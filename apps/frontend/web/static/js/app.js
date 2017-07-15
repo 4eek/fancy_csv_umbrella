@@ -15,7 +15,7 @@ function JobsApp(socket, container) {
       socket.connect()
 
       const jobsTable = JobsTable(container)
-      const channel = socket.channel('background_job')
+      const channel = socket.channel('job_runner')
 
       channel.join()
         .receive('error', resp => { console.log('Unable to join', resp) })

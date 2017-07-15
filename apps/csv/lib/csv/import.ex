@@ -8,14 +8,14 @@ defmodule Csv.Import do
     end
   end
 
-  defp import(stream, %{headers: headers, max_concurrency: max_concurrency, output_path: output_path, repo: repo}, on_update) do
-    {:ok, _} = Csv.Import.Output.open output_path, headers, fn(output_state) ->
+  defp import(stream, options, on_update) do
+    {:ok, _} = Csv.Import.Output.open options.output_path, options.headers, fn(output_state) ->
       stream
-      |> Task.async_stream(repo, :call, [], max_concurrency: max_concurrency)
+      |> Task.async_stream(options.repo, :call, [], max_concurrency: options.max_concurrency)
       |> Stream.map(fn({:ok, changeset}) -> changeset end)
       |> Stream.map(&add_output_row(&1, output_state))
-      |> Enum.reduce(Csv.Import.Stats.new, &sum_stats(&2, &1, on_update, max_concurrency))
-      |> Csv.Import.Stats.update(output: output_path)
+      |> Enum.reduce(Csv.Import.Stats.new, &sum_stats(&2, &1, on_update, options.max_concurrency))
+      |> Csv.Import.Stats.update(output: options.output_path)
       |> on_update.()
     end
   end

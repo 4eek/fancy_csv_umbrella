@@ -1,4 +1,4 @@
-defmodule Frontend.BackgroundJob.Server do
+defmodule JobRunner.Server do
   use GenServer
 
   defstruct ~w(id task data)a

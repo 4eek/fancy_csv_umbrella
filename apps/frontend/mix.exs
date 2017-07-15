@@ -40,6 +40,7 @@ defmodule Frontend.Mixfile do
      {:cowboy, "~> 1.0"},
      {:csv, in_umbrella: true},
      {:backend, in_umbrella: true},
+     {:job_runner, in_umbrella: true},
      {:wallaby, "~> 0.17.0", only: :test},
      {:phoenix_ecto, "~> 3.0", only: :test}]
   end

@@ -10,7 +10,7 @@ defmodule Frontend do
     children = [
       # Start the endpoint when the application starts
       supervisor(Frontend.Endpoint, []),
-      worker(Frontend.BackgroundJob, []),
+      worker(Frontend.JobRunner, []),
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

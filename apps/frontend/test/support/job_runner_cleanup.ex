@@ -1,16 +1,16 @@
-defmodule Frontend.BackgroundJobCleanup do
+defmodule Frontend.JobRunnerCleanup do
   defmacro __using__(_opts) do
     quote do
       setup do
         on_exit fn ->
-          Enum.each Frontend.BackgroundJob.all, fn(job) ->
+          Enum.each Frontend.JobRunner.all, fn(job) ->
             if Map.has_key?(job.data, :output) do
-              Frontend.BackgroundJobCleanup.delete_output_files(job)
+              Frontend.JobRunnerCleanup.delete_output_files(job)
             end
           end
         end
 
-        Frontend.BackgroundJob.delete_all
+        Frontend.JobRunner.delete_all
 
         :ok
       end

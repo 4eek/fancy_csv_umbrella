@@ -1,7 +1,7 @@
 defmodule Frontend.CityImportControllerTest do
   use Frontend.ConnCase, async: false
-  use Frontend.BackgroundJobCleanup
-  alias Frontend.BackgroundJob
+  use Frontend.JobRunnerCleanup
+  alias Frontend.JobRunner
 
   test "GET /city_import/new", %{conn: conn} do
     conn = get conn, city_import_path(@endpoint, :new)
@@ -26,10 +26,10 @@ defmodule Frontend.CityImportControllerTest do
       }
     }
 
-    :ok = BackgroundJob.await_all
+    :ok = JobRunner.await_all
 
     assert 3 == Backend.City.count
-    assert 1 == BackgroundJob.all |> Enum.count
+    assert 1 == JobRunner.all |> Enum.count
     assert redirected_to(conn) == city_import_path(@endpoint, :index)
   end
 end

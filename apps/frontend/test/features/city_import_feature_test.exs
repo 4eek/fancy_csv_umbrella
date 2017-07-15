@@ -1,6 +1,6 @@
 defmodule TestFeatureTest do
   use Frontend.FeatureCase, async: false
-  use Frontend.BackgroundJobCleanup
+  use Frontend.JobRunnerCleanup
 
   @fixture_path "test/fixtures/mixed_cities.csv"
 

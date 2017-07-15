@@ -1,10 +1,10 @@
 defmodule Frontend.CsvImportJob do
-  alias Frontend.{BackgroundJob, ImportPath}
-  alias Frontend.BackgroundJobChannel, as: Channel
+  alias Frontend.{JobRunner, ImportPath}
+  alias Frontend.JobRunnerChannel, as: Channel
   alias Csv.Import.Options
   alias Plug.Upload
 
-  @pid BackgroundJob.pid
+  @pid :job_runner
 
   defstruct [:filename, :output, :message, ok: 0, error: 0]
 
@@ -19,7 +19,7 @@ defmodule Frontend.CsvImportJob do
   end
 
   defp do_enqueue(pid, stats, options, output_dir) do
-    BackgroundJob.add pid, stats, fn(id) ->
+    JobRunner.add pid, stats, fn(id) ->
       Channel.send pid, "add", %{id: id, data: stats}
 
       Csv.Import.call options, fn(stats) ->
