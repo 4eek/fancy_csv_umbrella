@@ -1,9 +1,9 @@
-defmodule Backend.Csv.RecordStreamTest do
+defmodule Csv.RecordStreamTest do
   use ExUnit.Case
-  alias Backend.{Csv, City}
+  alias Csv.Mocks.Record
 
   setup do
-    {:ok, options: [headers: ~w(name url)a, type: City]}
+    {:ok, options: [headers: ~w(name url)a, type: Record]}
   end
 
   test "streams nothing when csv has no rows", %{options: options} do
@@ -23,9 +23,9 @@ defmodule Backend.Csv.RecordStreamTest do
     {:ok, stream} = Csv.RecordStream.new(device, options)
 
     assert [
-      %City{name: "Madrid", url: "http://madrid.com"},
-      %City{name: "Natal", url: "http://natal.com.br"},
-      %City{name: "New York", url: "http://newyork.org"}
+      %Record{name: "Madrid", url: "http://madrid.com"},
+      %Record{name: "Natal", url: "http://natal.com.br"},
+      %Record{name: "New York", url: "http://newyork.org"}
     ] = Enum.to_list(stream)
   end
 
@@ -39,9 +39,9 @@ defmodule Backend.Csv.RecordStreamTest do
     {:ok, stream} = Csv.RecordStream.new(device, options)
 
     assert [
-      %City{name: "Madrid", url: "http://madrid.com"},
-      %City{name: "Natal", url: "http://natal.com.br"},
-      %City{name: "New York", url: "http://newyork.org"}
+      %Record{name: "Madrid", url: "http://madrid.com"},
+      %Record{name: "Natal", url: "http://natal.com.br"},
+      %Record{name: "New York", url: "http://newyork.org"}
     ] = Enum.to_list(stream)
   end
 

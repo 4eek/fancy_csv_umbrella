@@ -3,10 +3,10 @@ defmodule CsvImportJobTest do
   alias Frontend.Endpoint
   import Phoenix.ChannelTest, only: [assert_broadcast: 2]
   alias Frontend.{BackgroundJob, CsvImportJob}
-  alias Backend.{City, Csv}
+  alias Backend.City
 
   @upload %Plug.Upload{path: "test/fixtures/cities.csv", filename: "cities.csv"}
-  @options %Csv.Import.Options{headers: ~w(name url)a, type: City}
+  @options %Csv.Import.Options{headers: ~w(name url)a, type: City, repo: Backend.SaveRecord}
 
   setup do
     Endpoint.subscribe "background_job"

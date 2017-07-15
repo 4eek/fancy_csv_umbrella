@@ -1,8 +1,7 @@
-defmodule Backend.Csv.Import.OutputTest do
+defmodule Csv.Import.OutputTest do
   use ExUnit.Case
-  alias Backend.{City, Csv} 
 
-  def build_changeset(map), do: struct(City, map) |> City.changeset
+  def build_changeset(map), do: struct(Csv.Mocks.Record, map) |> Csv.Mocks.Record.changeset
   def assert_device_closes(device), do: assert_receive {:closed_mock, ^device}
   def assert_file_contents(device, expected_contents) do
     {:ok, {_, contents}} = StringIO.close(device)

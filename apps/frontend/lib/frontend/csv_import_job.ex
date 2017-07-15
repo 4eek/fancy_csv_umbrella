@@ -1,7 +1,6 @@
 defmodule Frontend.CsvImportJob do
   alias Frontend.{BackgroundJob, ImportPath}
   alias Frontend.BackgroundJobChannel, as: Channel
-  alias Backend.Csv
   alias Csv.Import.Options
   alias Plug.Upload
 

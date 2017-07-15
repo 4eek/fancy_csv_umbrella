@@ -1,6 +1,4 @@
-defmodule Backend.Csv.Import do
-  alias Backend.{Csv, SaveRecord}
-
+defmodule Csv.Import do
   def call(%Csv.Import.Options{input_path: input_path, type: type} = options, on_update) do
     {:ok, _} = File.open input_path, fn(input_device) ->
       case Csv.RecordStream.new(input_device, headers: options.headers, type: type) do
@@ -10,10 +8,10 @@ defmodule Backend.Csv.Import do
     end
   end
 
-  defp import(stream, %{headers: headers, max_concurrency: max_concurrency, output_path: output_path}, on_update) do
+  defp import(stream, %{headers: headers, max_concurrency: max_concurrency, output_path: output_path, repo: repo}, on_update) do
     {:ok, _} = Csv.Import.Output.open output_path, headers, fn(output_state) ->
       stream
-      |> Task.async_stream(SaveRecord, :call, [], max_concurrency: max_concurrency)
+      |> Task.async_stream(repo, :call, [], max_concurrency: max_concurrency)
       |> Stream.map(fn({:ok, changeset}) -> changeset end)
       |> Stream.map(&add_output_row(&1, output_state))
       |> Enum.reduce(Csv.Import.Stats.new, &sum_stats(&2, &1, on_update, max_concurrency))

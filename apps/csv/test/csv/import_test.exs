@@ -1,8 +1,13 @@
-defmodule Backend.Csv.ImportTest do
-  use Backend.Support.DbCase, async: false
-  alias Backend.{Csv, City}
+defmodule Csv.ImportTest do
+  use ExUnit.Case
+
+  alias Csv
+  alias Csv.Mocks.{Record, Repo}
+  alias Csv.TestHelpers.Fixture
 
   setup do
+    Repo.start_link
+
     {:ok, output_path} = Briefly.create
     {:ok, output_path: output_path}
   end
@@ -17,7 +22,8 @@ defmodule Backend.Csv.ImportTest do
       input_path: Fixture.path("cities.csv"),
       output_path: output_path,
       headers: ~w(name url)a,
-      type: City,
+      type: Record,
+      repo: Repo,
       max_concurrency: 2
     }
 
@@ -34,11 +40,11 @@ defmodule Backend.Csv.ImportTest do
     assert_receive %{error: 0, ok: 1}
     assert_receive %{error: 2, ok: 4}
     assert [
-      %City{name: "Bar", url: "http://bar.org"},
-      %City{name: "Foo", url: "http://foo.org"},
-      %City{name: "Madrid", url: "http://madrid.org"},
-      %City{name: "Natal", url: "http://natal.com"}
-    ] = City.all
+      %Record{name: "Bar", url: "http://bar.org"},
+      %Record{name: "Foo", url: "http://foo.org"},
+      %Record{name: "Madrid", url: "http://madrid.org"},
+      %Record{name: "Natal", url: "http://natal.com"}
+    ] = Repo.all
 
   end
 
@@ -47,7 +53,8 @@ defmodule Backend.Csv.ImportTest do
       input_path: Fixture.path("invalid_cities.csv"),
       output_path: output_path,
       headers: ~w(name url)a,
-      type: City,
+      type: Record,
+      repo: Repo,
       max_concurrency: 2
     }
 
@@ -58,6 +65,6 @@ defmodule Backend.Csv.ImportTest do
 
     assert_file_contents output_path, ""
     assert_receive %{error: 0, ok: 0, message: "Invalid CSV headers"}
-    assert [] == City.all
+    assert [] == Repo.all
   end
 end

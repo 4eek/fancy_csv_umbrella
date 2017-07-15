@@ -1,6 +1,5 @@
-defmodule Backend.Csv.Import.Output do
+defmodule Csv.Import.Output do
   alias Ecto.Changeset
-  alias Backend.Csv
 
   def open(path, headers, callback, mod \\ File) do
     case mod.open(path, [:write]) do

@@ -1,6 +1,4 @@
-defmodule Backend.Csv.RecordStream do
-  alias Backend.Csv
-
+defmodule Csv.RecordStream do
   def new(device, headers: valid_headers, type: type) do
     stream = device |> to_stream
     headers = stream |> extract_headers
