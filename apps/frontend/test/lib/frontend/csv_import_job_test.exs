@@ -6,7 +6,7 @@ defmodule CsvImportJobTest do
   alias Backend.City
 
   @upload %Plug.Upload{path: "test/fixtures/cities.csv", filename: "cities.csv"}
-  @options %Csv.Import.Options{headers: ~w(name url)a, type: City, repo: Backend.SaveRecord}
+  @options Csv.options(headers: ~w(name url)a, type: City, repo: Backend.SaveRecord)
 
   setup do
     Endpoint.subscribe "job_runner"

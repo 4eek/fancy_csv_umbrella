@@ -1,18 +1,6 @@
 defmodule Csv do
-  @moduledoc """
-  Documentation for Csv.
-  """
+  alias Csv.Import.Options
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Csv.hello
-      :world
-
-  """
-  def hello do
-    :world
-  end
+  defdelegate import(options, on_update), to: Csv.Import, as: :call
+  def options(attributes \\ []), do: struct(Options, Enum.into(attributes, %{}))
 end
