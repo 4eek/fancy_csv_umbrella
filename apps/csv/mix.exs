@@ -36,6 +36,8 @@ defmodule Csv.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:ecto, "~> 2.1"}]
+    [{:ecto, "~> 2.1"},
+     {:briefly, "~> 0.3"},
+     {:nimble_csv, "~> 0.1.0"}]
   end
 end

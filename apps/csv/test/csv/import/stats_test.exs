@@ -1,50 +1,109 @@
 defmodule Csv.Import.StatsTest do
   use ExUnit.Case
-  import Csv.Import.Stats
+  alias Csv.Import.Stats
+
+  @ok_changeset {:ok, :fake_changeset}
+  @error_changeset {:error, :fake_changeset}
+
+  setup do
+    {:ok, send_to_self: &(send self(), &1)}
+  end
 
   test "has 0 ok and 0 error records when new" do
-    assert %Csv.Import.Stats{ok: 0, error: 0} == new()
+    assert %{ok: 0, error: 0} = Stats.new
   end
 
-  test "adds 1 ok record" do
-    assert %Csv.Import.Stats{ok: 1, error: 0} == new() |> update(:ok)
+  defp assert_receive_count(count) do
+    {:messages, messages} = Process.info(self(), :messages)
+    assert count == messages |> Enum.count
   end
 
-  test "adds 2 ok records" do
-    assert %Csv.Import.Stats{ok: 2, error: 0} == new() |> update(:ok) |> update(:ok)
+  test "adds 1 ok record", %{send_to_self: send_to_self} do
+    assert %{ok: 1, error: 0} = Stats.new
+    |> Stats.sum(@ok_changeset, send_to_self, freq: 1)
+
+    assert_receive_count 1
+    assert_receive %{ok: 1, error: 0}
   end
 
-  test "adds 1 error record" do
-    assert %Csv.Import.Stats{ok: 0, error: 1} == new() |> update(:error)
+  test "adds 2 ok records", %{send_to_self: send_to_self} do
+    assert %{ok: 2, error: 0} = Stats.new
+    |> Stats.sum(@ok_changeset, send_to_self, freq: 1)
+    |> Stats.sum(@ok_changeset, send_to_self, freq: 1)
+
+    assert_receive_count 2
+    assert_receive %{ok: 1, error: 0}
+    assert_receive %{ok: 2, error: 0}
   end
 
-  test "adds 2 error records" do
-    assert %Csv.Import.Stats{ok: 0, error: 2} == new() |> update(:error) |> update(:error)
+  test "adds 1 error record", %{send_to_self: send_to_self} do
+    assert %{ok: 0, error: 1} = Stats.new
+    |> Stats.sum(@error_changeset, send_to_self, freq: 1)
+
+    assert_receive_count 1
+    assert_receive %{ok: 0, error: 1}
   end
 
-  test "adds both success and error records" do
-    assert %Csv.Import.Stats{ok: 3, error: 2} == new()
-    |> update(:ok)
-    |> update(:error)
-    |> update(:ok)
-    |> update(:error)
-    |> update(:ok)
+  test "adds 2 error records", %{send_to_self: send_to_self} do
+    assert %{ok: 0, error: 2} = Stats.new
+    |> Stats.sum(@error_changeset, send_to_self, freq: 1)
+    |> Stats.sum(@error_changeset, send_to_self, freq: 1)
+
+    assert_receive_count 2
+    assert_receive %{ok: 0, error: 1}
+    assert_receive %{ok: 0, error: 2}
   end
 
-  test "updates with a message" do
-    assert %Csv.Import.Stats{ok: 0, error: 0, message: "Error"} == new()
-    |> update(message: "Error")
+  test "adds both ok and error records", %{send_to_self: send_to_self} do
+    assert %{ok: 3, error: 2} = Stats.new
+    |> Stats.sum(@ok_changeset, send_to_self, freq: 1)
+    |> Stats.sum(@error_changeset, send_to_self, freq: 1)
+    |> Stats.sum(@ok_changeset, send_to_self, freq: 1)
+    |> Stats.sum(@error_changeset, send_to_self, freq: 1)
+    |> Stats.sum(@ok_changeset, send_to_self, freq: 1)
+
+    assert_receive_count 5
+    assert_receive %{ok: 1, error: 0}
+    assert_receive %{ok: 1, error: 1}
+    assert_receive %{ok: 2, error: 1}
+    assert_receive %{ok: 2, error: 2}
+    assert_receive %{ok: 3, error: 2}
   end
 
-  test "updates with the output path" do
-    assert %Csv.Import.Stats{ok: 0, error: 0, output: "/file.csv"} == new()
-    |> update(output: "/file.csv")
+  test "sends messages in the given frequency", %{send_to_self: send_to_self} do
+    Stats.new
+    |> Stats.sum(@ok_changeset, send_to_self, freq: 2)
+    |> Stats.sum(@error_changeset, send_to_self, freq: 2)
+    |> Stats.sum(@ok_changeset, send_to_self, freq: 2)
+    |> Stats.sum(@error_changeset, send_to_self, freq: 2)
+    |> Stats.sum(@ok_changeset, send_to_self, freq: 2)
+
+    assert_receive_count 3
+    assert_receive %{ok: 1, error: 0}
+    assert_receive %{ok: 2, error: 1}
+    assert_receive %{ok: 3, error: 2}
   end
 
-  test "does not update with invalid state" do
+  test "finishes with a message", %{send_to_self: send_to_self} do
+    assert %{ok: 0, error: 0, message: "Error"} = Stats.new
+    |> Stats.finish(send_to_self, message: "Error")
+
+    assert_receive_count 1
+    assert_receive %{message: "Error"}
+  end
+
+  test "finishes with an output_path", %{send_to_self: send_to_self} do
+    assert %{ok: 0, error: 0, output: "/file.csv"} = Stats.new
+    |> Stats.finish(send_to_self, output: "/file.csv")
+
+    assert_receive_count 1
+    assert_receive %{output: "/file.csv"}
+  end
+
+  test "does not update with invalid state", %{send_to_self: send_to_self} do
     assert_raise FunctionClauseError, fn ->
-      %Csv.Import.Stats{ok: 0, error: 0, output: "/file.csv"} == new()
-      |> update(invalid: "invalid")
+      assert %{ok: 0, error: 0, output: "/file.csv"} = Stats.new
+      |> Stats.finish(send_to_self, invalid: "invalid")
     end
   end
 end

@@ -1,5 +1,7 @@
 ExUnit.start()
 
+Application.ensure_all_started :briefly
+
 defmodule Csv.Mocks.Record do
   use Ecto.Schema
 
