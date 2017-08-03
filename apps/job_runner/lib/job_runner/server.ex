@@ -13,4 +13,5 @@ defmodule JobRunner.Server do
   def handle_call(:await_all, _from, job_map), do: {:reply, :ok, Impl.await_all(job_map)}
 
   def handle_info({ref, _task_result}, job_map), do: {:noreply, Impl.finish_job(ref, job_map)}
+  def handle_info(_, job_map), do: {:noreply, job_map}
 end
