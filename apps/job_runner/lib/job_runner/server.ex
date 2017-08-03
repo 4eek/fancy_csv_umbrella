@@ -2,7 +2,7 @@ defmodule JobRunner.Server do
   alias JobRunner.Impl
   use GenServer
 
-  def start_link(opts \\ []), do: GenServer.start_link __MODULE__, [], opts
+  def start_link(opts \\ []), do: GenServer.start_link __MODULE__, nil, opts
   def init(_), do: {:ok, Impl.new}
 
   def handle_cast({:add, data, callback}, job_map), do: {:noreply, Impl.add(job_map, data, callback)}
